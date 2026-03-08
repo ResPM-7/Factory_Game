@@ -1,28 +1,37 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Cinemachine; // 시네머신 제어를 위해 추가
+using StarterAssets;
 
 public class InventoryManager : MonoBehaviour
 {
     [Header("UI 오브젝트")]
-    public GameObject inventoryUI; // Inspector에서 'Inventory' 오브젝트 드래그
+    public GameObject inventoryUI;
 
     [Header("입력 설정")]
     public InputActionReference inventoryAction;
 
+    private StarterAssetsInputs _playerInputs;
+    private PlayerInput _playerInputComponent;
+    private CinemachineInputAxisController _cameraInputController; // 카메라 입력 제어용
     private bool isInventoryOpen = false;
-
-    private void OnEnable() => inventoryAction.action.Enable();
-    private void OnDisable() => inventoryAction.action.Disable();
 
     void Start()
     {
-        isInventoryOpen = false;
-        inventoryUI.SetActive(false); // 인벤토리 끄기
+        // 유니티 6 최신 방식 사용
+        _playerInputs = Object.FindAnyObjectByType<StarterAssetsInputs>();
+        _playerInputComponent = Object.FindAnyObjectByType<PlayerInput>();
 
-        // 게임 시작 시에는 마우스를 가두고 숨깁니다.
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        // 씬에서 시네머신 입력 컨트롤러를 찾습니다.
+        _cameraInputController = Object.FindAnyObjectByType<CinemachineInputAxisController>();
+
+        isInventoryOpen = false;
+        inventoryUI.SetActive(false);
+        SetCursorState(false);
     }
+
+    private void OnEnable() => inventoryAction.action.Enable();
+    private void OnDisable() => inventoryAction.action.Disable();
 
     void Update()
     {
@@ -35,21 +44,35 @@ public class InventoryManager : MonoBehaviour
     public void ToggleInventory()
     {
         isInventoryOpen = !isInventoryOpen;
-
-        // 1. 인벤토리 창 켜기/끄기
         inventoryUI.SetActive(isInventoryOpen);
+        SetCursorState(isInventoryOpen);
 
-        // 2. 마우스 커서 상태 제어 (중요!)
-        if (isInventoryOpen)
+        if (_playerInputs != null && _playerInputComponent != null)
         {
-            Cursor.lockState = CursorLockMode.None; // 커서 고정 해제
-            Cursor.visible = true;                 // 커서 보이기
-            // 여기서 플레이어 이동이나 카메라 회전을 멈추는 로직을 추가하면 더 좋습니다.
+            if (isInventoryOpen)
+            {
+                // 1. 플레이어 이동 입력 차단
+                _playerInputComponent.actions.Disable();
+                _playerInputs.move = Vector2.zero;
+
+                // 2. 카메라 회전 입력 차단 (가장 중요!)
+                if (_cameraInputController != null) _cameraInputController.enabled = false;
+
+                // 3. 인벤토리 닫기 액션만 다시 활성화
+                inventoryAction.action.Enable();
+            }
+            else
+            {
+                // 4. 다시 모든 조작 활성화
+                _playerInputComponent.actions.Enable();
+                if (_cameraInputController != null) _cameraInputController.enabled = true;
+            }
         }
-        else
-        {
-            Cursor.lockState = CursorLockMode.Locked; // 다시 커서 가두기
-            Cursor.visible = false;                  // 커서 숨기기
-        }
+    }
+
+    private void SetCursorState(bool isOpen)
+    {
+        Cursor.lockState = isOpen ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = isOpen;
     }
 }
