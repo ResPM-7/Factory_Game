@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5784dc3a77bf16d4ea9cb602e50d5bea, type: 3}
+  m_Name: Branch
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: "\uB098\uBB47\uAC00\uC9C0"
+  iconTexture: {fileID: 8400000, guid: ff5ae55316cd39f439636b3a04e8fc7b, type: 2}
+  maxStackSize: 64
+  prefab: {fileID: 4448170334001285750, guid: 936d1e44485c16c49be7aa4300c64a4e, type: 3}
+  description: "\uC7AC\uB8CC \uC544\uC774\uD15C"
