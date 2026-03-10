@@ -93,32 +93,61 @@ public class InventoryManager : MonoBehaviour
         Cursor.visible = isOpen;
     }
 
-    public bool AddItem(ItemData _item, int _amount)
+    public bool AddItem(ItemData data, int amount)
     {
-        // 1. 이미 같은 아이템이 있는지 확인 (Stack 기능)
+        int remainingAmount = amount; // 담아야 할 남은 수량
+
+        // 1. 기존에 있는 같은 아이템 슬롯에 먼저 채우기
         foreach (InventorySlot slot in allSlots)
         {
-            if (slot.item == _item && slot.amount < _item.maxStackSize)
+            if (slot.item == data && slot.amount < data.maxStackSize)
             {
-                slot.amount += _amount;
+                // 이 슬롯에 들어갈 수 있는 여유 공간 계산
+                int canAdd = data.maxStackSize - slot.amount;
+
+                // 넣을 수 있는 만큼만 넣음
+                int amountToAdd = Mathf.Min(canAdd, remainingAmount);
+
+                slot.amount += amountToAdd;
+                remainingAmount -= amountToAdd;
+
                 slot.UpdateSlotUI();
-                return true;
+
+                // 다 담았으면 끝!
+                if (remainingAmount <= 0) return true;
             }
         }
 
-        // 2. 같은 아이템이 없다면 빈 슬롯 찾기
-        foreach (InventorySlot slot in allSlots)
+        // 2. 남은 수량이 있다면 빈 슬롯 찾아서 채우기
+        if (remainingAmount > 0)
         {
-            if (slot.item == null)
+            foreach (InventorySlot slot in allSlots)
             {
-                slot.item = _item;
-                slot.amount = _amount;
-                slot.UpdateSlotUI();
-                return true;
+                if (slot.item == null)
+                {
+                    // 빈칸에 담을 수 있는 최대치 계산
+                    int amountToAdd = Mathf.Min(data.maxStackSize, remainingAmount);
+
+                    slot.item = data;
+                    slot.amount = amountToAdd;
+                    remainingAmount -= amountToAdd;
+
+                    slot.UpdateSlotUI();
+
+                    // 다 담았으면 끝!
+                    if (remainingAmount <= 0) return true;
+                }
             }
         }
 
-        Debug.Log("인벤토리가 가득 찼습니다!");
-        return false;
+        // 3. 인벤토리가 다 찼는데도 남았다면 (인벤토리 풀)
+        if (remainingAmount > 0)
+        {
+            Debug.Log($"{remainingAmount}개를 담을 공간이 부족합니다!");
+            // 여기서 바닥에 다시 버리게 하거나 알림을 띄울 수 있습니다.
+            return false;
+        }
+
+        return true;
     }
 }

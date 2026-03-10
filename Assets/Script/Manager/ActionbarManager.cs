@@ -64,7 +64,5 @@ public class ActionbarManager : MonoBehaviour
                 highlightImage.transform.position = slots[index].position;
             }
         }
-
-        Debug.Log($"ÇöÀç {index + 1}¹ø ½½·Ô ¼±ÅÃµÊ");
     }
 }

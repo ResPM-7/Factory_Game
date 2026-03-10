@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -12,77 +12,119 @@ public class ItemDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     void Awake()
     {
         _mySlot = GetComponent<InventorySlot>();
-        // ÀÎ½ºÆåÅÍ¿¡¼­ ³ÖÀº Canvas GroupÀ» °¡Á®¿É´Ï´Ù.
+        // ì¸ìŠ¤í™í„°ì—ì„œ ë„£ì€ Canvas Groupì„ ê°€ì ¸ì˜µë‹ˆë‹¤.
         _canvasGroup = GetComponent<CanvasGroup>();
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        Debug.Log($"[Å¬¸¯] {gameObject.name} ´­¸²!");
+        Debug.Log($"[í´ë¦­] {gameObject.name} ëˆŒë¦¼!");
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (_mySlot.item == null) return;
 
-        // 1. ¸Å´ÏÀúÀÇ µå·¡±× ¿ÀºêÁ§Æ® È°¼ºÈ­ ¹× µ¥ÀÌÅÍ ¼¼ÆÃ
+        // 1. ë§¤ë‹ˆì €ì˜ ë“œë˜ê·¸ ì˜¤ë¸Œì íŠ¸ í™œì„±í™” ë° ë°ì´í„° ì„¸íŒ…
         var manager = InventoryManager.Instance;
         manager.dragIcon.texture = _mySlot.item.iconTexture;
         manager.dragAmountText.text = _mySlot.amount > 1 ? _mySlot.amount.ToString() : "";
         manager.dragObject.SetActive(true);
 
-        // 2. ÇöÀç ½½·ÔÀÇ ¾ÆÀÌÄÜÀº Àá½Ã ¼û±â±â (µé°í ÀÖ´Â ´À³¦À» ÁÖ±â À§ÇØ)
+        // 2. í˜„ì¬ ìŠ¬ë¡¯ì˜ ì•„ì´ì½˜ì€ ì ì‹œ ìˆ¨ê¸°ê¸° (ë“¤ê³  ìˆëŠ” ëŠë‚Œì„ ì£¼ê¸° ìœ„í•´)
         _mySlot.iconRawImage.enabled = false;
         _mySlot.stackText.enabled = false;
 
-        // 3. ·¹ÀÌÄ³½ºÆ® Â÷´Ü (¹Ø¿¡ ÀÖ´Â ½½·ÔÀÌ ¸¶¿ì½º¸¦ °¨ÁöÇØ¾ß ÇÏ¹Ç·Î)
+        // 3. ë ˆì´ìºìŠ¤íŠ¸ ì°¨ë‹¨ (ë°‘ì— ìˆëŠ” ìŠ¬ë¡¯ì´ ë§ˆìš°ìŠ¤ë¥¼ ê°ì§€í•´ì•¼ í•˜ë¯€ë¡œ)
         manager.dragObject.GetComponent<CanvasGroup>().blocksRaycasts = false;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        // ¸Å´ÏÀúÀÇ µå·¡±× ¿ÀºêÁ§Æ®°¡ ¸¶¿ì½º¸¦ µû¶ó´Ù´Ï°Ô ÇÔ
+        // ë§¤ë‹ˆì €ì˜ ë“œë˜ê·¸ ì˜¤ë¸Œì íŠ¸ê°€ ë§ˆìš°ìŠ¤ë¥¼ ë”°ë¼ë‹¤ë‹ˆê²Œ í•¨
         InventoryManager.Instance.dragObject.transform.position = eventData.position;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // µå·¡±× ¿ÀºêÁ§Æ® ºñÈ°¼ºÈ­ ¹× ¿ø·¡ ½½·Ô º¹±¸
         InventoryManager.Instance.dragObject.SetActive(false);
         _mySlot.UpdateSlotUI();
 
-        // 3. ±âÁ¸ÀÇ Swap ·ÎÁ÷ ½ÇÇà...
+        // 1. ë§ˆìš°ìŠ¤ê°€ ê°€ë¦¬í‚¤ëŠ” ê³³ì— UIê°€ ìˆëŠ”ì§€ í™•ì¸
         GameObject target = eventData.pointerCurrentRaycast.gameObject;
+
         if (target != null)
         {
+            // UI ìœ„ì— ë†“ì•˜ì„ ë•Œ: ê¸°ì¡´ Swap(êµì²´) ë¡œì§
             InventorySlot targetSlot = target.GetComponentInParent<InventorySlot>();
             if (targetSlot != null && targetSlot != _mySlot)
             {
                 SwapItems(_mySlot, targetSlot);
             }
         }
+        else
+        {
+            // 2. UIê°€ ì—†ëŠ” í—ˆê³µ(ì›”ë“œ)ì— ë†“ì•˜ì„ ë•Œ: ì•„ì´í…œ ë²„ë¦¬ê¸° ì‹¤í–‰
+            DropItem();
+        }
     }
 
-    void DropItem()
+    private void DropItem()
     {
-        // ÇÃ·¹ÀÌ¾î ¾Õ À§Ä¡¿¡ ¾ÆÀÌÅÛ ÇÁ¸®ÆÕ ¼ÒÈ¯
-        Vector3 dropPos = Camera.main.transform.position + Camera.main.transform.forward * 2f;
-        GameObject droppedObject = Instantiate(_mySlot.item.prefab, dropPos, Quaternion.identity);
+        if (_mySlot.item == null || _mySlot.item.prefab == null) return;
 
-        // ¼ÒÈ¯µÈ ¿ÀºêÁ§Æ®¿¡ Pickup ½ºÅ©¸³Æ®°¡ ÀÖ´Ù¸é Á¤º¸ ¼¼ÆÃ
-        ItemPickup pickup = droppedObject.GetComponent<ItemPickup>();
-        if (pickup != null)
+        // 1. "Player" íƒœê·¸ê°€ ë¶™ì€ ì˜¤ë¸Œì íŠ¸ ì°¾ê¸°
+        GameObject player = GameObject.FindWithTag("Player");
+
+        // í”Œë ˆì´ì–´ë¥¼ ì°¾ì§€ ëª»í–ˆì„ ê²½ìš°ë¥¼ ëŒ€ë¹„í•œ ì•ˆì „ì¥ì¹˜
+        if (player == null)
         {
-            pickup.item = _mySlot.item;
-            pickup.amount = _mySlot.amount;
+            Debug.LogError("'Player' íƒœê·¸ë¥¼ ê°€ì§„ ì˜¤ë¸Œì íŠ¸ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤!");
+            return;
         }
 
-        _mySlot.ClearSlot(); // ½½·Ô ºñ¿ì±â
+        ItemData itemToDrop = _mySlot.item;
+        int amountToDrop = _mySlot.amount;
+        Transform playerTransform = player.transform;
+
+        // 2. í”Œë ˆì´ì–´ ì• 1.2m, ë†’ì´ 1m ì§€ì ì—ì„œ ì‹œì‘ (ìºë¦­í„° í—ˆë¦¬ ë†’ì´ ì •ë„)
+        Vector3 dropPosition = playerTransform.position + (playerTransform.forward * 1.2f) + (Vector3.up * 1.0f);
+
+        // 3. ë°”ë‹¥ ë†’ì´ ê°ì§€ (Raycast)
+
+        RaycastHit hit;
+        if (Physics.Raycast(dropPosition, Vector3.down, out hit, 5f))
+        {
+            // ë°”ë‹¥ì„ ì°¾ì•˜ë‹¤ë©´ ê·¸ ì§€ì ë³´ë‹¤ ì‚´ì§ ìœ„(0.1m)ì— ë°°ì¹˜
+            dropPosition.y = hit.point.y + 0.1f;
+        }
+
+        // 4. ì•„ì´í…œ ì†Œí™˜ (í’€ ë§¤ë‹ˆì € ì‚¬ìš©)
+        GameObject droppedItem = ItemPoolManager.Instance.GetItem(itemToDrop, dropPosition, Quaternion.identity);
+
+        // 5. ì •ë³´ ì£¼ì…
+        var pickupScript = droppedItem.GetComponent<ItemPickup>();
+        if (pickupScript != null)
+        {
+            pickupScript.item = itemToDrop;
+            pickupScript.amount = amountToDrop;
+        }
+
+        // 6. ë¬¼ë¦¬ íš¨ê³¼ (í”Œë ˆì´ì–´ ì •ë©´ ë°©í–¥ìœ¼ë¡œ ì‚´ì§ ë°€ì–´ë‚´ê¸°)
+        if (droppedItem.TryGetComponent(out Rigidbody rb))
+        {
+            rb.linearVelocity = Vector3.zero; // Unity 6 ìµœì‹  API ì ìš©
+            rb.AddForce(playerTransform.forward * 1.0f, ForceMode.Impulse);
+        }
+
+        // 7. ìŠ¬ë¡¯ ë¹„ìš°ê¸° ë° ë¡œê·¸
+        _mySlot.ClearSlot();
+        Debug.Log($"{itemToDrop.itemName}ì„(ë¥¼) í”Œë ˆì´ì–´ ì•ì— ë²„ë ¸ìŠµë‹ˆë‹¤.");
     }
 
     private void SwapItems(InventorySlot a, InventorySlot b)
     {
-        // µ¥ÀÌÅÍ ±³Ã¼ ·ÎÁ÷
+        // ë°ì´í„° êµì²´ ë¡œì§
         ItemData tempItem = a.item;
         int tempAmount = a.amount;
 
@@ -92,7 +134,7 @@ public class ItemDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         b.item = tempItem;
         b.amount = tempAmount;
 
-        // UI °»½Å
+        // UI ê°±ì‹ 
         a.UpdateSlotUI();
         b.UpdateSlotUI();
     }
