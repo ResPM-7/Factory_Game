@@ -1,31 +1,31 @@
-using StarterAssets;
+ï»¿using StarterAssets;
 using TMPro;
-using Unity.Cinemachine; // ½Ã³×¸Ó½Å Á¦¾î¸¦ À§ÇØ Ãß°¡
+using Unity.Cinemachine; // ì‹œë„¤ë¨¸ì‹  ì œì–´ë¥¼ ìœ„í•´ ì¶”ê°€
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class InventoryManager : MonoBehaviour
 {
-    public static InventoryManager Instance; // ½Ì±ÛÅæ ¼³Á¤
+    public static InventoryManager Instance; // ì‹±ê¸€í†¤ ì„¤ì •
 
-    [Header("µå·¡±× Àü¿ë UI (°í½ºÆ® ¾ÆÀÌÄÜ)")]
-    public GameObject dragObject; // ÀÌ¹ÌÁö¿Í ÅØ½ºÆ®°¡ ´ã±ä ºÎ¸ğ ¿ÀºêÁ§Æ®
+    [Header("ë“œë˜ê·¸ ì „ìš© UI (ê³ ìŠ¤íŠ¸ ì•„ì´ì½˜)")]
+    public GameObject dragObject; // ì´ë¯¸ì§€ì™€ í…ìŠ¤íŠ¸ê°€ ë‹´ê¸´ ë¶€ëª¨ ì˜¤ë¸Œì íŠ¸
     public RawImage dragIcon;
     public Text dragAmountText;
 
-    [Header("¸ğµç ½½·Ô ¸®½ºÆ®")]
-    public InventorySlot[] allSlots; // ÀÎ½ºÆåÅÍ¿¡¼­ 30°³ ½½·ÔÀ» ¸ğµÎ µå·¡±×ÇØ¼­ ³Ö¾îÁÖ¼¼¿ä.
+    [Header("ëª¨ë“  ìŠ¬ë¡¯ ë¦¬ìŠ¤íŠ¸")]
+    public InventorySlot[] allSlots; // ì¸ìŠ¤í™í„°ì—ì„œ 30ê°œ ìŠ¬ë¡¯ì„ ëª¨ë‘ ë“œë˜ê·¸í•´ì„œ ë„£ì–´ì£¼ì„¸ìš”.
 
-    [Header("UI ¿ÀºêÁ§Æ®")]
+    [Header("UI ì˜¤ë¸Œì íŠ¸")]
     public GameObject inventoryUI;
 
-    [Header("ÀÔ·Â ¼³Á¤")]
+    [Header("ì…ë ¥ ì„¤ì •")]
     public InputActionReference inventoryAction;
 
     private StarterAssetsInputs _playerInputs;
     private PlayerInput _playerInputComponent;
-    private CinemachineInputAxisController _cameraInputController; // Ä«¸Ş¶ó ÀÔ·Â Á¦¾î¿ë
+    private CinemachineInputAxisController _cameraInputController; // ì¹´ë©”ë¼ ì…ë ¥ ì œì–´ìš©
     private bool isInventoryOpen = false;
 
     void Awake()
@@ -35,11 +35,11 @@ public class InventoryManager : MonoBehaviour
 
     void Start()
     {
-        // À¯´ÏÆ¼ 6 ÃÖ½Å ¹æ½Ä »ç¿ë
+        // ìœ ë‹ˆí‹° 6 ìµœì‹  ë°©ì‹ ì‚¬ìš©
         _playerInputs = Object.FindAnyObjectByType<StarterAssetsInputs>();
         _playerInputComponent = Object.FindAnyObjectByType<PlayerInput>();
 
-        // ¾À¿¡¼­ ½Ã³×¸Ó½Å ÀÔ·Â ÄÁÆ®·Ñ·¯¸¦ Ã£½À´Ï´Ù.
+        // ì”¬ì—ì„œ ì‹œë„¤ë¨¸ì‹  ì…ë ¥ ì»¨íŠ¸ë¡¤ëŸ¬ë¥¼ ì°¾ìŠµë‹ˆë‹¤.
         _cameraInputController = Object.FindAnyObjectByType<CinemachineInputAxisController>();
 
         isInventoryOpen = false;
@@ -50,39 +50,77 @@ public class InventoryManager : MonoBehaviour
     private void OnEnable() => inventoryAction.action.Enable();
     private void OnDisable() => inventoryAction.action.Disable();
 
+    public bool IsInventoryOpen => isInventoryOpen;
+
     void Update()
     {
+        // ì¸ë²¤í† ë¦¬ í‚¤(I)ê°€ ëˆŒë ¸ì„ ë•Œ
         if (inventoryAction.action.WasPressedThisFrame())
         {
-            ToggleInventory();
+            // 1. ìƒì UIê°€ ì¡´ì¬í•˜ê³ , í˜„ì¬ í™”ë©´ì— ì¼œì ¸(activeSelf) ìˆëŠ”ì§€ í™•ì¸
+            if (StorageUI.Instance != null && StorageUI.Instance.uiPanel.activeSelf)
+            {
+                // 2. ìƒìê°€ ì¼œì ¸ ìˆë‹¤ë©´, ìƒìë¥¼ ë‹«ëŠ” ê¸°ëŠ¥ì„ ì‹¤í–‰í•©ë‹ˆë‹¤.
+                // (ìš°ë¦¬ê°€ ë§Œë“  CloseStorageì—ì„œ ì¸ë²¤í† ë¦¬ë„ ê°™ì´ ì •ë¦¬ë˜ê²Œ ì„¤ê³„í–ˆì—ˆì£ !)
+                StorageUI.Instance.CloseStorage();
+            }
+            else
+            {
+                // 3. ìƒìê°€ êº¼ì ¸ ìˆëŠ” í‰ì†Œ ìƒíƒœë¼ë©´, ì›ë˜ëŒ€ë¡œ ì¸ë²¤í† ë¦¬ë¥¼ í† ê¸€í•©ë‹ˆë‹¤.
+                ToggleInventory();
+            }
         }
+    }
+
+    public void CloseAllMenus()
+    {
+        isInventoryOpen = false;
+        inventoryUI.SetActive(false);
+        StorageUI.Instance.CloseStorage();
+        UpdateInputState();
+    }
+
+    // ìƒìì—ì„œ ê°•ì œë¡œ ì¸ë²¤í† ë¦¬ë¥¼ ì—´ ë•Œ ì‚¬ìš©í•  í•¨ìˆ˜
+    public void OpenInventoryForce()
+    {
+        if (!isInventoryOpen) ToggleInventory();
     }
 
     public void ToggleInventory()
     {
         isInventoryOpen = !isInventoryOpen;
         inventoryUI.SetActive(isInventoryOpen);
-        SetCursorState(isInventoryOpen);
 
-        if (_playerInputs != null && _playerInputComponent != null)
+        // ì¸ë²¤í† ë¦¬ê°€ ë‹«í ë•Œ ìƒìë„ ì—´ë ¤ìˆë‹¤ë©´ ê°™ì´ ë‹«ì•„ì¤ë‹ˆë‹¤. (ì§€ì›… ë‹˜ ìš”ì²­ì‚¬í•­)
+        if (!isInventoryOpen && StorageUI.Instance.uiPanel.activeSelf)
         {
-            if (isInventoryOpen)
-            {
-                // 1. ÇÃ·¹ÀÌ¾î ÀÌµ¿ ÀÔ·Â Â÷´Ü
-                _playerInputComponent.actions.Disable();
-                _playerInputs.move = Vector2.zero;
+            StorageUI.Instance.CloseStorage();
+        }
 
-                // 2. Ä«¸Ş¶ó È¸Àü ÀÔ·Â Â÷´Ü (°¡Àå Áß¿ä!)
-                if (_cameraInputController != null) _cameraInputController.enabled = false;
+        UpdateInputState();
+    }
 
-                // 3. ÀÎº¥Åä¸® ´İ±â ¾×¼Ç¸¸ ´Ù½Ã È°¼ºÈ­
-                inventoryAction.action.Enable();
-            }
-            else
+    public void UpdateInputState()
+    {
+        bool anyUIOpen = isInventoryOpen || StorageUI.Instance.uiPanel.activeSelf;
+
+        if (anyUIOpen)
+        {
+            _playerInputComponent.SwitchCurrentActionMap("UI");
+            SetCursorState(true);
+            if (_cameraInputController != null) _cameraInputController.enabled = false;
+        }
+        else
+        {
+            // âœ¨ ëª¨ë“  UIê°€ ë‹«íˆë©´ ë¬´ì¡°ê±´ Player ë§µìœ¼ë¡œ! (ë‘ ë²ˆì§¸ ì•ˆ ì—´ë¦¼ ë°©ì§€)
+            _playerInputComponent.SwitchCurrentActionMap("Player");
+            SetCursorState(false);
+            if (_cameraInputController != null) _cameraInputController.enabled = true;
+
+            if (_playerInputs != null)
             {
-                // 4. ´Ù½Ã ¸ğµç Á¶ÀÛ È°¼ºÈ­
-                _playerInputComponent.actions.Enable();
-                if (_cameraInputController != null) _cameraInputController.enabled = true;
+                _playerInputs.cursorLocked = true;
+                _playerInputs.cursorInputForLook = true;
             }
         }
     }
@@ -95,17 +133,17 @@ public class InventoryManager : MonoBehaviour
 
     public bool AddItem(ItemData data, int amount)
     {
-        int remainingAmount = amount; // ´ã¾Æ¾ß ÇÒ ³²Àº ¼ö·®
+        int remainingAmount = amount; // ë‹´ì•„ì•¼ í•  ë‚¨ì€ ìˆ˜ëŸ‰
 
-        // 1. ±âÁ¸¿¡ ÀÖ´Â °°Àº ¾ÆÀÌÅÛ ½½·Ô¿¡ ¸ÕÀú Ã¤¿ì±â
+        // 1. ê¸°ì¡´ì— ìˆëŠ” ê°™ì€ ì•„ì´í…œ ìŠ¬ë¡¯ì— ë¨¼ì € ì±„ìš°ê¸°
         foreach (InventorySlot slot in allSlots)
         {
             if (slot.item == data && slot.amount < data.maxStackSize)
             {
-                // ÀÌ ½½·Ô¿¡ µé¾î°¥ ¼ö ÀÖ´Â ¿©À¯ °ø°£ °è»ê
+                // ì´ ìŠ¬ë¡¯ì— ë“¤ì–´ê°ˆ ìˆ˜ ìˆëŠ” ì—¬ìœ  ê³µê°„ ê³„ì‚°
                 int canAdd = data.maxStackSize - slot.amount;
 
-                // ³ÖÀ» ¼ö ÀÖ´Â ¸¸Å­¸¸ ³ÖÀ½
+                // ë„£ì„ ìˆ˜ ìˆëŠ” ë§Œí¼ë§Œ ë„£ìŒ
                 int amountToAdd = Mathf.Min(canAdd, remainingAmount);
 
                 slot.amount += amountToAdd;
@@ -113,19 +151,19 @@ public class InventoryManager : MonoBehaviour
 
                 slot.UpdateSlotUI();
 
-                // ´Ù ´ã¾ÒÀ¸¸é ³¡!
+                // ë‹¤ ë‹´ì•˜ìœ¼ë©´ ë!
                 if (remainingAmount <= 0) return true;
             }
         }
 
-        // 2. ³²Àº ¼ö·®ÀÌ ÀÖ´Ù¸é ºó ½½·Ô Ã£¾Æ¼­ Ã¤¿ì±â
+        // 2. ë‚¨ì€ ìˆ˜ëŸ‰ì´ ìˆë‹¤ë©´ ë¹ˆ ìŠ¬ë¡¯ ì°¾ì•„ì„œ ì±„ìš°ê¸°
         if (remainingAmount > 0)
         {
             foreach (InventorySlot slot in allSlots)
             {
                 if (slot.item == null)
                 {
-                    // ºóÄ­¿¡ ´ãÀ» ¼ö ÀÖ´Â ÃÖ´ëÄ¡ °è»ê
+                    // ë¹ˆì¹¸ì— ë‹´ì„ ìˆ˜ ìˆëŠ” ìµœëŒ€ì¹˜ ê³„ì‚°
                     int amountToAdd = Mathf.Min(data.maxStackSize, remainingAmount);
 
                     slot.item = data;
@@ -134,17 +172,17 @@ public class InventoryManager : MonoBehaviour
 
                     slot.UpdateSlotUI();
 
-                    // ´Ù ´ã¾ÒÀ¸¸é ³¡!
+                    // ë‹¤ ë‹´ì•˜ìœ¼ë©´ ë!
                     if (remainingAmount <= 0) return true;
                 }
             }
         }
 
-        // 3. ÀÎº¥Åä¸®°¡ ´Ù Ã¡´Âµ¥µµ ³²¾Ò´Ù¸é (ÀÎº¥Åä¸® Ç®)
+        // 3. ì¸ë²¤í† ë¦¬ê°€ ë‹¤ ì°¼ëŠ”ë°ë„ ë‚¨ì•˜ë‹¤ë©´ (ì¸ë²¤í† ë¦¬ í’€)
         if (remainingAmount > 0)
         {
-            Debug.Log($"{remainingAmount}°³¸¦ ´ãÀ» °ø°£ÀÌ ºÎÁ·ÇÕ´Ï´Ù!");
-            // ¿©±â¼­ ¹Ù´Ú¿¡ ´Ù½Ã ¹ö¸®°Ô ÇÏ°Å³ª ¾Ë¸²À» ¶ç¿ï ¼ö ÀÖ½À´Ï´Ù.
+            Debug.Log($"{remainingAmount}ê°œë¥¼ ë‹´ì„ ê³µê°„ì´ ë¶€ì¡±í•©ë‹ˆë‹¤!");
+            // ì—¬ê¸°ì„œ ë°”ë‹¥ì— ë‹¤ì‹œ ë²„ë¦¬ê²Œ í•˜ê±°ë‚˜ ì•Œë¦¼ì„ ë„ìš¸ ìˆ˜ ìˆìŠµë‹ˆë‹¤.
             return false;
         }
 

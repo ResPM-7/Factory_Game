@@ -54,7 +54,16 @@
                 {
                     "name": "Inventory",
                     "type": "Button",
-                    "id": "91f3acc2-2166-479f-9490-825ae7361be8",
+                    "id": "2f77e2ff-fb25-4890-af44-ef7cc69c0c71",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Interaction",
+                    "type": "Button",
+                    "id": "4796be6c-6ca3-47e7-afa1-9f154bd1aa36",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -251,16 +260,33 @@
                 },
                 {
                     "name": "",
-                    "id": "e8bcd873-99ad-4847-a6ff-b2e497f733c6",
-                    "path": "<Keyboard>/e",
+                    "id": "0d133d02-cb9a-46c1-8d88-9010ee0fe2c4",
+                    "path": "<Keyboard>/i",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Inventory",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ced86fbb-e066-4e63-b1d3-bfc35424e330",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Interaction",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "UI",
+            "id": "5eff9d40-dd36-4c19-a4dc-09588bf04391",
+            "actions": [],
+            "bindings": []
         }
     ],
     "controlSchemes": [
