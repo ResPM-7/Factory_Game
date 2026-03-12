@@ -7,151 +7,76 @@ using UnityEngine.UI;
 
 public class InventoryManager : MonoBehaviour
 {
-    public static InventoryManager Instance; // 싱글톤 설정
+    public static InventoryManager Instance;
 
+    // ✨ 에러를 해결할 핵심 변수 3가지입니다.
     [Header("드래그 전용 UI (고스트 아이콘)")]
-    public GameObject dragObject; // 이미지와 텍스트가 담긴 부모 오브젝트
-    public RawImage dragIcon;
-    public Text dragAmountText;
+    public GameObject dragObject; // 마우스를 따라다닐 부모 오브젝트
+    public RawImage dragIcon;     // 아이템 이미지가 표시될 곳
+    public Text dragAmountText;   // 아이템 개수가 표시될 곳 (TMP라면 TextMeshProUGUI로 변경)
 
     [Header("모든 슬롯 리스트")]
-    public InventorySlot[] allSlots; // 인스펙터에서 30개 슬롯을 모두 드래그해서 넣어주세요.
+    public InventorySlot[] allSlots;
 
-    [Header("UI 오브젝트")]
     public GameObject inventoryUI;
-
-    [Header("입력 설정")]
-    public InputActionReference inventoryAction;
 
     private StarterAssetsInputs _playerInputs;
     private PlayerInput _playerInputComponent;
-    private CinemachineInputAxisController _cameraInputController; // 카메라 입력 제어용
+    private CinemachineInputAxisController _cameraInputController;
     private bool isInventoryOpen = false;
 
-    void Awake()
-    {
-        Instance = this;
-    }
+    void Awake() => Instance = this;
 
     void Start()
     {
-        // 유니티 6 최신 방식 사용
+        // 유니티 6 방식의 컴포넌트 찾기
         _playerInputs = Object.FindAnyObjectByType<StarterAssetsInputs>();
         _playerInputComponent = Object.FindAnyObjectByType<PlayerInput>();
-
-        // 씬에서 시네머신 입력 컨트롤러를 찾습니다.
         _cameraInputController = Object.FindAnyObjectByType<CinemachineInputAxisController>();
 
+        // ✨ 시작할 때 인벤토리와 마우스 커서 상태를 초기화합니다.
         isInventoryOpen = false;
-        inventoryUI.SetActive(false);
-        SetCursorState(false);
+        if (inventoryUI != null) inventoryUI.SetActive(false);
+
+        // 조작 가능 모드(Player)로 시작
+        SetPlayerControl(true);
     }
-
-    private void OnEnable() => inventoryAction.action.Enable();
-    private void OnDisable() => inventoryAction.action.Disable();
-
-    public bool IsInventoryOpen => isInventoryOpen;
 
     void Update()
     {
-        // 인벤토리 키(I)가 눌렸을 때
-        if (inventoryAction.action.WasPressedThisFrame())
+        var invAction = _playerInputComponent.actions.FindAction("Inventory");
+        if (invAction != null && invAction.WasPressedThisFrame())
         {
-            // 1. 상자 UI가 존재하고, 현재 화면에 켜져(activeSelf) 있는지 확인
-            if (StorageUI.Instance != null && StorageUI.Instance.uiPanel.activeSelf)
+            bool isStorageOpen = StorageUI.Instance != null && StorageUI.Instance.uiPanel.activeSelf;
+
+            if (isInventoryOpen || isStorageOpen)
             {
-                // 2. 상자가 켜져 있다면, 상자를 닫는 기능을 실행합니다.
-                // (우리가 만든 CloseStorage에서 인벤토리도 같이 정리되게 설계했었죠!)
-                StorageUI.Instance.CloseStorage();
+                // ✨ InventoryManager 대신 UIManager에게 일을 시킵니다.
+                UIManager.Instance.CloseAllMenus();
             }
             else
             {
-                // 3. 상자가 꺼져 있는 평소 상태라면, 원래대로 인벤토리를 토글합니다.
-                ToggleInventory();
+                OpenInventory(); // 열기는 본인이 직접!
             }
         }
-    }
-
-    public void CloseAllMenus()
-    {
-        isInventoryOpen = false;
-        inventoryUI.SetActive(false);
-        StorageUI.Instance.CloseStorage();
-        UpdateInputState();
-    }
-
-    // 상자에서 강제로 인벤토리를 열 때 사용할 함수
-    public void OpenInventoryForce()
-    {
-        if (!isInventoryOpen) ToggleInventory();
-    }
-
-    public void ToggleInventory()
-    {
-        isInventoryOpen = !isInventoryOpen;
-        inventoryUI.SetActive(isInventoryOpen);
-
-        // 인벤토리가 닫힐 때 상자도 열려있다면 같이 닫아줍니다. (지웅 님 요청사항)
-        if (!isInventoryOpen && StorageUI.Instance.uiPanel.activeSelf)
-        {
-            StorageUI.Instance.CloseStorage();
-        }
-
-        UpdateInputState();
-    }
-
-    public void UpdateInputState()
-    {
-        bool anyUIOpen = isInventoryOpen || StorageUI.Instance.uiPanel.activeSelf;
-
-        if (anyUIOpen)
-        {
-            _playerInputComponent.SwitchCurrentActionMap("UI");
-            SetCursorState(true);
-            if (_cameraInputController != null) _cameraInputController.enabled = false;
-        }
-        else
-        {
-            // ✨ 모든 UI가 닫히면 무조건 Player 맵으로! (두 번째 안 열림 방지)
-            _playerInputComponent.SwitchCurrentActionMap("Player");
-            SetCursorState(false);
-            if (_cameraInputController != null) _cameraInputController.enabled = true;
-
-            if (_playerInputs != null)
-            {
-                _playerInputs.cursorLocked = true;
-                _playerInputs.cursorInputForLook = true;
-            }
-        }
-    }
-
-    private void SetCursorState(bool isOpen)
-    {
-        Cursor.lockState = isOpen ? CursorLockMode.None : CursorLockMode.Locked;
-        Cursor.visible = isOpen;
     }
 
     public bool AddItem(ItemData data, int amount)
     {
         int remainingAmount = amount; // 담아야 할 남은 수량
 
-        // 1. 기존에 있는 같은 아이템 슬롯에 먼저 채우기
+        // 1. 기존에 있는 같은 아이템 슬롯에 먼저 채우기 (Stacking)
         foreach (InventorySlot slot in allSlots)
         {
             if (slot.item == data && slot.amount < data.maxStackSize)
             {
-                // 이 슬롯에 들어갈 수 있는 여유 공간 계산
                 int canAdd = data.maxStackSize - slot.amount;
-
-                // 넣을 수 있는 만큼만 넣음
                 int amountToAdd = Mathf.Min(canAdd, remainingAmount);
 
                 slot.amount += amountToAdd;
                 remainingAmount -= amountToAdd;
-
                 slot.UpdateSlotUI();
 
-                // 다 담았으면 끝!
                 if (remainingAmount <= 0) return true;
             }
         }
@@ -163,29 +88,85 @@ public class InventoryManager : MonoBehaviour
             {
                 if (slot.item == null)
                 {
-                    // 빈칸에 담을 수 있는 최대치 계산
                     int amountToAdd = Mathf.Min(data.maxStackSize, remainingAmount);
 
                     slot.item = data;
                     slot.amount = amountToAdd;
                     remainingAmount -= amountToAdd;
-
                     slot.UpdateSlotUI();
 
-                    // 다 담았으면 끝!
                     if (remainingAmount <= 0) return true;
                 }
             }
         }
 
-        // 3. 인벤토리가 다 찼는데도 남았다면 (인벤토리 풀)
+        // 3. 인벤토리가 꽉 찼을 때
         if (remainingAmount > 0)
         {
-            Debug.Log($"{remainingAmount}개를 담을 공간이 부족합니다!");
-            // 여기서 바닥에 다시 버리게 하거나 알림을 띄울 수 있습니다.
+            Debug.LogWarning("인벤토리가 가득 차서 아이템을 더 담을 수 없습니다!");
             return false;
         }
 
         return true;
     }
+
+    // [열기] 인벤토리만 열 때
+    public void OpenInventory()
+    {
+        isInventoryOpen = true;
+        inventoryUI.SetActive(true);
+        SetPlayerControl(false); // 조작 차단
+    }
+
+    // [열기] 상자 열 때 강제 호출용
+    public void OpenInventoryForce()
+    {
+        isInventoryOpen = true;
+        inventoryUI.SetActive(true);
+    }
+/*
+    // [닫기] UI의 X 버튼에 연결할 함수 (가장 중요!)
+    public void CloseAllMenus()
+    {
+        // 1. 상자 데이터 저장 및 창 닫기
+        if (StorageUI.Instance != null && StorageUI.Instance.uiPanel.activeSelf)
+        {
+            StorageUI.Instance.CloseStorage();
+        }
+
+        // 2. 인벤토리 창 닫기
+        isInventoryOpen = false;
+        inventoryUI.SetActive(false);
+
+        // 3. 조작 복구
+        SetPlayerControl(true);
+    }*/
+
+    public void SetPlayerControl(bool isEnable)
+    {
+        if (isEnable)
+        {
+            _playerInputComponent.SwitchCurrentActionMap("Player");
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            if (_cameraInputController != null) _cameraInputController.enabled = true;
+        }
+        else
+        {
+            _playerInputComponent.SwitchCurrentActionMap("UI");
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            // 이동값 초기화 및 카메라 차단
+            _playerInputs.move = Vector2.zero;
+            _playerInputs.look = Vector2.zero;
+            if (_cameraInputController != null) _cameraInputController.enabled = false;
+        }
+    }
+
+    // InventoryManager.cs 안에 추가
+public void SetInventoryState(bool isOpen)
+{
+    isInventoryOpen = isOpen;
+}
 }

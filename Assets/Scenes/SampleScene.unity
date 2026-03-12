@@ -5379,9 +5379,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc7c923619f1d3d4ba8a4244b18bdd29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Storage
-  storageName: "\uCCA0\uC81C \uC0C1\uC790"
-  size: 50
   storageData: []
+  slotCount: 50
 --- !u!1 &363291141
 GameObject:
   m_ObjectHideFlags: 0
@@ -7042,9 +7041,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1621443508}
-        m_TargetAssemblyTypeName: StorageUI, Assembly-CSharp
-        m_MethodName: CloseStorage
+      - m_Target: {fileID: 1947405697}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: CloseAllMenus
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -13549,9 +13548,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc7c923619f1d3d4ba8a4244b18bdd29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Storage
-  storageName: "\uB098\uBB34 \uC0C1\uC790"
-  size: 50
   storageData: []
+  slotCount: 50
 --- !u!136 &862872772
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -26338,6 +26336,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1937135595}
   m_CullTransparentMesh: 0
+--- !u!1 &1947405696
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1947405698}
+  - component: {fileID: 1947405697}
+  m_Layer: 0
+  m_Name: UIManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1947405697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1947405696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 305a789a4cce9a544a44b1fad646b86c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIManager
+--- !u!4 &1947405698
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1947405696}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.26123, y: 0, z: 3.48167}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1947710570
 GameObject:
   m_ObjectHideFlags: 0
@@ -27200,7 +27242,6 @@ MonoBehaviour:
   - {fileID: 8526062789450492471}
   - {fileID: 7826354184675020963}
   inventoryUI: {fileID: 4045632406461839191}
-  inventoryAction: {fileID: -942456630624477056, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
 --- !u!4 &2010038506
 Transform:
   m_ObjectHideFlags: 0
@@ -40485,9 +40526,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2010038505}
-        m_TargetAssemblyTypeName: InventoryManager, Assembly-CSharp
-        m_MethodName: ToggleInventory
+      - m_Target: {fileID: 1947405697}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: CloseAllMenus
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -50240,7 +50281,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89f429f975394ca48b4c58c2d528b672, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
-  interactAction: {fileID: 1436205050910138102, guid: 4419d82f33d36e848b3ed5af4c8da37e, type: 3}
   interactDistance: 2.5
   interactLayer:
     serializedVersion: 2
@@ -56593,6 +56633,7 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 6488090767530976540}
   - {fileID: 1496744924}
+  - {fileID: 1947405698}
   - {fileID: 621674832}
   - {fileID: 2010038506}
   - {fileID: 1856049584}

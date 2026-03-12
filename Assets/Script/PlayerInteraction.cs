@@ -1,46 +1,44 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem; // 1. 네임스페이스 추가
+using UnityEngine.InputSystem;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    [Header("입력 설정)")]
-    public InputActionReference interactAction; // 2. KeyCode 대신 Action 사용
-
-    [Header("레이캐스트 설정")]
     public float interactDistance = 2.5f;
     public LayerMask interactLayer;
     public float offsetHeight = 1.0f;
 
-    // 3. 액션 활성화/비활성화 처리
-    private void OnEnable() => interactAction.action.Enable();
-    private void OnDisable() => interactAction.action.Disable();
-
     void Update()
     {
-        // 4. WasPressedThisFrame()으로 키 눌림 감지
-        if (interactAction.action.WasPressedThisFrame())
-        {
-            CheckInteract();
-        }
+        // 1. 현재 활성화된 맵에서 Interaction 키(E)를 가져옵니다.
+        var interact = GetComponent<PlayerInput>().actions.FindAction("Interaction");
 
-        // 디버그용 레이저 (에디터 전용)
-        Vector3 origin = transform.position + (Vector3.up * offsetHeight);
-        Debug.DrawRay(origin, transform.forward * interactDistance, Color.red);
+        if (interact != null && interact.WasPressedThisFrame())
+        {
+            // 2. ✨ 현재 UI가 하나라도 켜져 있는지 체크합니다.
+            bool isUIActive = (StorageUI.Instance != null && StorageUI.Instance.uiPanel.activeSelf) ||
+                              (InventoryManager.Instance != null && InventoryManager.Instance.inventoryUI.activeSelf);
+
+            if (isUIActive)
+            {
+                // 3. ✨ UI가 켜져 있다면? UIManager를 시켜서 몽땅 닫습니다.
+                UIManager.Instance.CloseAllMenus();
+            }
+            else
+            {
+                // 4. UI가 다 닫혀 있다면? 원래 하던 대로 상호작용(레이저) 실행!
+                CheckInteract();
+            }
+        }
     }
 
     void CheckInteract()
     {
         Vector3 origin = transform.position + (Vector3.up * offsetHeight);
-        Vector3 direction = transform.forward;
-
-        RaycastHit hit;
-
-        if (Physics.Raycast(origin, direction, out hit, interactDistance, interactLayer))
+        if (Physics.Raycast(origin, transform.forward, out RaycastHit hit, interactDistance, interactLayer))
         {
             if (hit.collider.TryGetComponent(out Storage storage))
             {
                 storage.Interact();
-                Debug.Log($"[Unity 6 Input] {storage.storageName} 오픈!");
             }
         }
     }

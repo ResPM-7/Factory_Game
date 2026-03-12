@@ -54,7 +54,7 @@
                 {
                     "name": "Inventory",
                     "type": "Button",
-                    "id": "2f77e2ff-fb25-4890-af44-ef7cc69c0c71",
+                    "id": "5bf40a9f-18e9-42a9-b4b6-58684af0e93f",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -63,7 +63,7 @@
                 {
                     "name": "Interaction",
                     "type": "Button",
-                    "id": "4796be6c-6ca3-47e7-afa1-9f154bd1aa36",
+                    "id": "2e5eaadb-b9c1-4c9f-a83b-dabd8213fb08",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -183,6 +183,28 @@
                 },
                 {
                     "name": "",
+                    "id": "8df89168-787c-4c31-add3-b50bdff9c7ee",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Interaction",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2feea088-968b-49d5-8091-40865a5d4fc0",
+                    "path": "<Keyboard>/i",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Inventory",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "ed66cbff-2900-4a62-8896-696503cfcd31",
                     "path": "<Pointer>/delta",
                     "interactions": "",
@@ -257,10 +279,36 @@
                     "action": "PersonCameraChange",
                     "isComposite": false,
                     "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "UI",
+            "id": "5eff9d40-dd36-4c19-a4dc-09588bf04391",
+            "actions": [
+                {
+                    "name": "Inventory",
+                    "type": "Button",
+                    "id": "261668b2-4202-4270-a14d-f9bf32e6e7b2",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
+                    "name": "Interaction",
+                    "type": "Button",
+                    "id": "71b27e03-66b2-4473-9b4c-53e41e98654c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
                     "name": "",
-                    "id": "0d133d02-cb9a-46c1-8d88-9010ee0fe2c4",
+                    "id": "609ce0d0-f2a2-46aa-b1d5-2537d6ac578d",
                     "path": "<Keyboard>/i",
                     "interactions": "",
                     "processors": "",
@@ -271,7 +319,7 @@
                 },
                 {
                     "name": "",
-                    "id": "ced86fbb-e066-4e63-b1d3-bfc35424e330",
+                    "id": "2e8e85b0-cc05-48e7-92fc-db18b2798c41",
                     "path": "<Keyboard>/e",
                     "interactions": "",
                     "processors": "",
@@ -281,12 +329,6 @@
                     "isPartOfComposite": false
                 }
             ]
-        },
-        {
-            "name": "UI",
-            "id": "5eff9d40-dd36-4c19-a4dc-09588bf04391",
-            "actions": [],
-            "bindings": []
         }
     ],
     "controlSchemes": [
