@@ -28,7 +28,7 @@ public class UIManager : MonoBehaviour
     // ✨ 지웅 님이 원하던 "어떤 UI든 닫아주는" 만능 함수
     public void CloseAllMenus()
     {
-        // 1. 상자 데이터 저장 (상자가 켜져 있을 때만 실행)
+        // 1. 상자 데이터 저장 및 닫기
         if (StorageUI.Instance != null && StorageUI.Instance.uiPanel.activeSelf)
         {
             StorageUI.Instance.CloseStorage();
@@ -38,18 +38,20 @@ public class UIManager : MonoBehaviour
         if (InventoryManager.Instance != null)
         {
             InventoryManager.Instance.inventoryUI.SetActive(false);
-            // InventoryManager 내부의 상태 변수도 직접 꺼줍니다.
-            // (InventoryManager의 isInventoryOpen을 public으로 바꿔야 합니다)
             InventoryManager.Instance.SetInventoryState(false);
         }
 
-        // 3. ✨ [추가 예정] 상점, 퀘스트 창 등이 있다면 여기에 추가하면 됩니다.
-        // 예: if(ShopUI.Instance != null) ShopUI.Instance.CloseShop();
+        // 3. ✨ 제작창(CraftingUI) 닫기 (오타 및 변수명 수정)
+        if (CraftingUI.Instance != null && CraftingUI.Instance.uiPanel.activeSelf)
+        {
+            // CraftingUI에 있는 uiPanel을 직접 끕니다.
+            CraftingUI.Instance.uiPanel.SetActive(false);
+            // 상태 변수도 안전하게 처리합니다.
+            CraftingUI.Instance.SetCraftingUIState(false);
+        }
 
-        // 4. 조작 복구 (가장 핵심)
+        // 4. 조작 복구
         RestorePlayerControl();
-
-        //Debug.Log("UIManager: 모든 UI 닫기 및 조작 복구 완료");
     }
 
     // 캐릭터 조작을 원래대로 돌리는 로직을 별도 함수로 분리
