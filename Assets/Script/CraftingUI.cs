@@ -3,9 +3,12 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
-public class CraftingUI : MonoBehaviour
+public class CraftingUI : MonoBehaviour, IUIPanel
 {
     public static CraftingUI Instance;
+
+    [Header("연결된 제작대")]
+    private CraftingStation _targetStation;
 
     [Header("UI 패널 제어")]
     public GameObject uiPanel;
@@ -45,6 +48,19 @@ public class CraftingUI : MonoBehaviour
         SetCraftingUIState(false);
     }
 
+    void Update()
+    {
+        // 열려있는 제작대의 실시간 진행 상태를 UI에 반영
+        if (uiPanel.activeSelf && _targetStation != null && _targetStation.isCrafting)
+        {
+            float duration = _targetStation.currentRecipe.craftTime;
+            float elapsed = _targetStation.elapsedTime;
+
+            if (craftSlider != null) craftSlider.value = elapsed;
+            if (buttonText != null) buttonText.text = $"{(duration - elapsed):F1}s";
+        }
+    }
+
     // --- UI 상태 관리 ---
     public void SetCraftingUIState(bool isOpen)
     {
@@ -52,13 +68,42 @@ public class CraftingUI : MonoBehaviour
         if (uiPanel != null) uiPanel.SetActive(isOpen);
 
         if (!isOpen) ResetStateUI(); // 닫을 때 상태 초기화
+
+        // ✨ 추가된 핵심 코드: UI가 켜지거나 꺼질 때 UIManager에게 마우스 상태를 새로고침하라고 지시합니다.
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateInputState();
+        }
     }
 
-    public void OpenCraftingUI()
+    public void OpenCraftingUI(CraftingStation station = null)
     {
+        _targetStation = station;
+
+        // 1. 제작창 패널 활성화
         SetCraftingUIState(true);
-        InventoryManager.Instance.OpenInventoryForce();
-        InventoryManager.Instance.UpdateInputState();
+
+        // 2. ✨ 추가된 로직: 인벤토리 매니저를 통해 인벤토리 UI를 함께 엽니다.
+        if (InventoryManager.Instance != null && !InventoryManager.Instance.inventoryUI.activeSelf)
+        {
+            InventoryManager.Instance.SetInventoryState(true);
+        }
+
+        // 3. 기존 레시피 및 상태 갱신 로직
+        if (_targetStation != null && _targetStation.currentRecipe != null)
+        {
+            SelectRecipe(_targetStation.currentRecipe);
+
+            if (_targetStation.isFinished)
+            {
+                if (craftSlider != null) craftSlider.value = _targetStation.currentRecipe.craftTime;
+                if (buttonText != null) buttonText.text = "COLLECT";
+            }
+        }
+        else
+        {
+            ResetStateUI();
+        }
     }
 
     private void SetIconAlpha(float alpha)
@@ -122,15 +167,22 @@ public class CraftingUI : MonoBehaviour
     // --- 제작 로직 ---
     public void OnCraftButtonClicked()
     {
-        if (_selectedRecipe == null) return;
+        if (_targetStation == null || _selectedRecipe == null) return;
 
-        if (_isFinished)
+        if (_targetStation.isFinished)
         {
-            CollectItem(); // 완료 상태면 인벤토리로 수령
+            CollectItem();
         }
-        else if (!_isCrafting && CanCraft(_selectedRecipe, 1))
+        else if (!_targetStation.isCrafting && CanCraft(_selectedRecipe, 1))
         {
-            StartCoroutine(CraftRoutine()); // 제작 시작
+            // 재료 소모 후 제작대에게 제작 시작 명령
+            ConsumeIngredients(_selectedRecipe, 1);
+            UpdateIngredientsUI();
+
+            _targetStation.StartCrafting(_selectedRecipe);
+
+            if (craftSlider != null) craftSlider.maxValue = _selectedRecipe.craftTime;
+            craftButton.interactable = false;
         }
     }
 
@@ -167,14 +219,10 @@ public class CraftingUI : MonoBehaviour
 
     void CollectItem()
     {
-        if (InventoryManager.Instance.AddItem(_selectedRecipe.resultItem, _selectedRecipe.resultAmount))
+        if (InventoryManager.Instance.AddItem(_targetStation.currentRecipe.resultItem, _targetStation.currentRecipe.resultAmount))
         {
-            Debug.Log($"<color=green>[제작]</color> {_selectedRecipe.resultItem.itemName} 수령 완료!");
+            _targetStation.Collect();
             ResetStateUI();
-        }
-        else
-        {
-            Debug.Log("<color=red>[경고]</color> 인벤토리가 가득 찼습니다!");
         }
     }
 
@@ -218,4 +266,6 @@ public class CraftingUI : MonoBehaviour
         foreach (var ing in recipe.ingredients)
             InventoryManager.Instance.RemoveItem(ing.item, ing.amount * count);
     }
+
+    public void CloseUI() => SetCraftingUIState(false);
 }

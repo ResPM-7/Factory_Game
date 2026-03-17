@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class StorageUI : MonoBehaviour
+public class StorageUI : MonoBehaviour, IUIPanel
 {
     public static StorageUI Instance;
     public GameObject uiPanel;
@@ -56,5 +56,10 @@ public class StorageUI : MonoBehaviour
         }
         uiPanel.SetActive(false);
         _currentStorage = null;
+    }
+
+    public void CloseUI()
+    {
+        CloseStorage();
     }
 }

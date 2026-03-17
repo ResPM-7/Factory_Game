@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class Storage : MonoBehaviour
+public class Storage : MonoBehaviour, IInteractable
 {
     // [System.Serializable]을 붙여야 인스펙터에서 보이고 저장됩니다.
     [System.Serializable]

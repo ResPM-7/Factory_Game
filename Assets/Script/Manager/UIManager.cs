@@ -1,11 +1,15 @@
-﻿using UnityEngine;
-using UnityEngine.InputSystem;
-using StarterAssets;
+﻿using StarterAssets;
+using System.Collections.Generic;
 using Unity.Cinemachine;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
+
+    [Header("등록된 모든 UI 패널")]
+    public List<GameObject> allUIPanels = new List<GameObject>();
 
     private PlayerInput _playerInput;
     private StarterAssetsInputs _playerInputs;
@@ -25,29 +29,42 @@ public class UIManager : MonoBehaviour
         _cameraController = Object.FindAnyObjectByType<CinemachineInputAxisController>();
     }
 
+    public bool IsAnyUIOpen()
+    {
+        foreach (GameObject panel in allUIPanels)
+        {
+            if (panel != null && panel.activeSelf)
+            {
+                return true; // 하나라도 켜져 있으면 true 반환
+            }
+        }
+        return false; // 모두 꺼져 있으면 false 반환
+    }
+
     // ✨ 지웅 님이 원하던 "어떤 UI든 닫아주는" 만능 함수
     public void CloseAllMenus()
     {
-        // 1. 상자 데이터 저장 및 닫기
-        if (StorageUI.Instance != null && StorageUI.Instance.uiPanel.activeSelf)
+        foreach (GameObject panel in allUIPanels)
         {
-            StorageUI.Instance.CloseStorage();
+            if (panel != null && panel.activeSelf)
+            {
+                // 패널 오브젝트나 그 부모에 있는 IUIPanel 인터페이스를 찾습니다.
+                IUIPanel uiManager = panel.GetComponentInParent<IUIPanel>();
+
+                if (uiManager != null)
+                {
+                    // 인터페이스가 존재하면 각 UI의 고유 닫기 로직을 실행합니다.
+                    uiManager.CloseUI();
+                }
+                else
+                {
+                    // 인터페이스가 없는 단순 UI라면 패널만 비활성화합니다.
+                    panel.SetActive(false);
+                }
+            }
         }
 
-        // 2. 인벤토리 닫기
-        if (InventoryManager.Instance != null)
-        {
-            InventoryManager.Instance.SetInventoryState(false);
-        }
-
-        // 3. ✨ 제작창(CraftingUI) 닫기 (오타 및 변수명 수정)
-        if (CraftingUI.Instance != null && CraftingUI.Instance.uiPanel.activeSelf)
-        {
-            // SetCraftingUIState 하나만 부르면 패널 끄기 + 게이지 초기화가 알아서 다 됩니다.
-            CraftingUI.Instance.SetCraftingUIState(false);
-        }
-
-        // 4. 조작 복구
+        // 조작 복구
         RestorePlayerControl();
     }
 
@@ -72,4 +89,26 @@ public class UIManager : MonoBehaviour
             _playerInputs.cursorLocked = true;
         }
     }
+
+    public void UpdateInputState()
+    {
+        // IsAnyUIOpen()은 allUIPanels 리스트를 알아서 뒤져서 하나라도 켜져있는지 확인해 줍니다.
+        if (IsAnyUIOpen())
+        {
+            // UI가 하나라도 켜져 있다면 -> UI 조작 모드 (마우스 등장)
+            if (_playerInput != null) _playerInput.SwitchCurrentActionMap("UI");
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            if (_cameraController != null) _cameraController.enabled = false;
+        }
+        else
+        {
+            // UI가 모두 꺼져 있다면 -> 플레이어 조작 모드 (마우스 숨김)
+            if (_playerInput != null) _playerInput.SwitchCurrentActionMap("Player");
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            if (_cameraController != null) _cameraController.enabled = true;
+        }
+    }
+
 }

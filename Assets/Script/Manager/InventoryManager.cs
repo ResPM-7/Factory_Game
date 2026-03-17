@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using Unity.Cinemachine;
 using UnityEngine.UI;
 
-public class InventoryManager : MonoBehaviour
+public class InventoryManager : MonoBehaviour, IUIPanel
 {
     public static InventoryManager Instance;
 
@@ -41,35 +41,24 @@ public class InventoryManager : MonoBehaviour
 
     void Update()
     {
-        // 1. 현재 Action Map에서 "Inventory" 키(I) 입력을 찾습니다.
-        var invAction = _playerInputComponent.actions.FindAction("Inventory");
-
-        if (invAction != null && invAction.WasPressedThisFrame())
+        if (Keyboard.current != null && Keyboard.current.iKey.wasPressedThisFrame)
         {
-            // 2. 현재 어떤 UI든 하나라도 열려 있는지 체크합니다.
-            bool isAnyUIOpen = isInventoryOpen ||
-                               (StorageUI.Instance != null && StorageUI.Instance.uiPanel.activeSelf) ||
-                               (CraftingUI.Instance != null && CraftingUI.Instance.uiPanel.activeSelf);
+            // 1. 내 UI(인벤토리)가 켜져있으면 끄고, 꺼져있으면 켭니다.
+            SetInventoryState(!inventoryUI.activeSelf);
 
-            if (isAnyUIOpen)
+            // 2. 조작 모드 변경은 UIManager에게 알아서 하라고 던져줍니다.
+            if (UIManager.Instance != null)
             {
-                // 3. ✨ [닫기] 이미 창이 열려 있다면 UIManager를 시켜서 싹 닫습니다.
-                // 인벤토리뿐만 아니라 상자나 제작창이 열려 있어도 'I'를 누르면 닫힙니다.
-                UIManager.Instance.CloseAllMenus();
-                Debug.Log("I 키로 모든 메뉴 닫기");
-            }
-            else
-            {
-                // 4. [열기] 아무것도 안 열려 있다면 인벤토리를 엽니다.
-                OpenInventory();
-                Debug.Log("I 키로 인벤토리 열기");
+                UIManager.Instance.UpdateInputState();
             }
         }
-        if (Keyboard.current.f12Key.wasPressedThisFrame)
+
+        if (Keyboard.current != null && Keyboard.current.f12Key.wasPressedThisFrame)
         {
             ToggleCraftingUI();
         }
     }
+
     private void ToggleCraftingUI()
     {
         if (CraftingUI.Instance == null) return;
@@ -222,5 +211,10 @@ public class InventoryManager : MonoBehaviour
         isInventoryOpen = true;
         inventoryUI.SetActive(true);
         UpdateInputState();
+    }
+
+    public void CloseUI()
+    {
+        SetInventoryState(false);
     }
 }
