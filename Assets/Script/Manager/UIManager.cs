@@ -37,16 +37,13 @@ public class UIManager : MonoBehaviour
         // 2. 인벤토리 닫기
         if (InventoryManager.Instance != null)
         {
-            InventoryManager.Instance.inventoryUI.SetActive(false);
             InventoryManager.Instance.SetInventoryState(false);
         }
 
         // 3. ✨ 제작창(CraftingUI) 닫기 (오타 및 변수명 수정)
         if (CraftingUI.Instance != null && CraftingUI.Instance.uiPanel.activeSelf)
         {
-            // CraftingUI에 있는 uiPanel을 직접 끕니다.
-            CraftingUI.Instance.uiPanel.SetActive(false);
-            // 상태 변수도 안전하게 처리합니다.
+            // SetCraftingUIState 하나만 부르면 패널 끄기 + 게이지 초기화가 알아서 다 됩니다.
             CraftingUI.Instance.SetCraftingUIState(false);
         }
 

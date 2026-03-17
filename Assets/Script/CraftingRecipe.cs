@@ -1,20 +1,21 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "New Recipe", menuName = "Inventory/Crafting Recipe")]
 public class CraftingRecipe : ScriptableObject
 {
-    [Header("°á°ú¹°")]
+    [Header("ê²°ê³¼ë¬¼")]
     public ItemData resultItem;
     public int resultAmount = 1;
+    public float craftTime = 3.0f; // âœ¨ ì œì‘ì— ê±¸ë¦¬ëŠ” ì‹œê°„ (ì´ˆ)
 
     [System.Serializable]
-    public struct Ingredient // Àç·á ±¸Á¶Ã¼
+    public struct Ingredient // ì¬ë£Œ êµ¬ì¡°ì²´
     {
         public ItemData item;
         public int amount;
     }
 
-    [Header("ÇÊ¿ä Àç·á")]
+    [Header("í•„ìš” ì¬ë£Œ")]
     public List<Ingredient> ingredients;
 }

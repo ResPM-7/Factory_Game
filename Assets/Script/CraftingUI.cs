@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
+using System.Collections;
 using System.Collections.Generic;
 
 public class CraftingUI : MonoBehaviour
@@ -8,87 +8,207 @@ public class CraftingUI : MonoBehaviour
     public static CraftingUI Instance;
 
     [Header("UI 패널 제어")]
-    public GameObject uiPanel; // ✨ 추가: UIManager가 끄고 켤 전체 창 (Blacksmithy)
-    private bool isCraftingUIOpen = false; // ✨ 추가: 상태 변수
+    public GameObject uiPanel;
+    private bool _isCraftingUIOpen = false;
 
     [Header("오른쪽 상단: 결과물")]
     public RawImage resultPreviewIcon;
-    public TextMeshProUGUI resultNameText;
+    public Text resultNameText;
 
-    [Header("오른쪽 하단: 재료 리스트 부모")]
-    public Transform ingredientParent;
-    public GameObject ingredientSlotPrefab;
+    [Header("Ingredients 영역 (미리 배치한 5개 슬롯)")]
+    // 하이어라키의 Item Slot들을 순서대로 드래그해서 넣으세요 (Element 0~4)
+    public IngredientSlot[] ingredientSlots;
+
+    [Header("제작 연출 요소")]
+    public Slider craftSlider;
+    public Text buttonText;
+    public Button craftButton;
+
+    [Header("레시피 설정")]
+    public List<CraftingRecipe> allRecipes;
+    public GameObject recipeButtonPrefab;
+    public Transform recipeParent;
 
     private CraftingRecipe _selectedRecipe;
-    private int _craftAmount = 1;
+    private bool _isCrafting = false; // 현재 제작 게이지 차는 중인가?
+    private bool _isFinished = false; // 제작 완료 후 수령 대기 중인가?
 
     void Awake() => Instance = this;
 
-    // ✨ 추가: UIManager가 호출할 상태 변경 함수
-    public void SetCraftingUIState(bool isOpen)
+    void Start()
     {
-        isCraftingUIOpen = isOpen;
-        if (uiPanel != null) uiPanel.SetActive(isOpen);
+        foreach (var slot in ingredientSlots) slot.gameObject.SetActive(false);
+        SetIconAlpha(0);
+        GenerateAllRecipes();
+
+        // 2. 추가된 로직: 시작 시 제작창 패널을 비활성화하고 내부 상태를 초기화합니다.
+        SetCraftingUIState(false);
     }
 
-    // ✨ 추가: 제작창을 열 때 사용 (E키 등에서 호출용)
+    // --- UI 상태 관리 ---
+    public void SetCraftingUIState(bool isOpen)
+    {
+        _isCraftingUIOpen = isOpen;
+        if (uiPanel != null) uiPanel.SetActive(isOpen);
+
+        if (!isOpen) ResetStateUI(); // 닫을 때 상태 초기화
+    }
+
     public void OpenCraftingUI()
     {
         SetCraftingUIState(true);
-        // 제작할 때는 가방도 같이 보여야 편하니까 강제 오픈
         InventoryManager.Instance.OpenInventoryForce();
-        // 조작 모드를 UI로 변경
         InventoryManager.Instance.UpdateInputState();
     }
 
-    public void SelectRecipe(CraftingRecipe recipe)
+    private void SetIconAlpha(float alpha)
     {
-        _selectedRecipe = recipe;
-        UpdateUI();
-    }
-
-    void UpdateUI()
-    {
-        if (_selectedRecipe == null) return;
-
-        resultPreviewIcon.texture = _selectedRecipe.resultItem.iconTexture;
-        resultNameText.text = _selectedRecipe.resultItem.itemName;
-
-        foreach (Transform child in ingredientParent) Destroy(child.gameObject);
-
-        foreach (var ing in _selectedRecipe.ingredients)
+        if (resultPreviewIcon != null)
         {
-            GameObject go = Instantiate(ingredientSlotPrefab, ingredientParent);
-            // 여기서 재료 아이콘과 수량을 표시하는 자식 컴포넌트가 있다면 Setup 호출
-            // go.GetComponent<IngredientSlot>().Setup(ing);
+            Color c = resultPreviewIcon.color;
+            c.a = alpha;
+            resultPreviewIcon.color = c;
         }
     }
 
+    // --- 레시피 목록 생성 ---
+    public void GenerateAllRecipes()
+    {
+        foreach (Transform child in recipeParent) Destroy(child.gameObject);
+        foreach (var recipe in allRecipes)
+        {
+            GameObject btnGo = Instantiate(recipeButtonPrefab, recipeParent);
+            if (btnGo.TryGetComponent(out RecipeButton recipeBtn)) recipeBtn.Setup(recipe);
+        }
+    }
+
+    // --- 레시피 선택 ---
+    public void SelectRecipe(CraftingRecipe recipe)
+    {
+        if (_isCrafting || _isFinished) return; // 제작 중엔 변경 금지
+
+        _selectedRecipe = recipe;
+
+        // 결과물 정보 세팅
+        if (resultPreviewIcon != null) resultPreviewIcon.texture = recipe.resultItem.iconTexture;
+        if (resultNameText != null) resultNameText.text = recipe.resultItem.itemName;
+
+        SetIconAlpha(1);       // 아이콘 표시
+        UpdateIngredientsUI(); // 5개 슬롯 갱신
+        ResetStateUI();        // 버튼 및 슬라이더 초기화
+    }
+
+    // --- 재료 슬롯 업데이트 (최적화: 미리 만들어둔 5개 재사용) ---
+    void UpdateIngredientsUI()
+    {
+        if (_selectedRecipe == null) return;
+
+        int requiredCount = _selectedRecipe.ingredients.Count;
+
+        for (int i = 0; i < ingredientSlots.Length; i++)
+        {
+            if (i < requiredCount)
+            {
+                ingredientSlots[i].gameObject.SetActive(true);
+                ingredientSlots[i].Setup(_selectedRecipe.ingredients[i]);
+            }
+            else
+            {
+                ingredientSlots[i].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    // --- 제작 로직 ---
     public void OnCraftButtonClicked()
     {
         if (_selectedRecipe == null) return;
 
-        if (CanCraft(_selectedRecipe, _craftAmount))
+        if (_isFinished)
         {
-            ConsumeIngredients(_selectedRecipe, _craftAmount);
-            InventoryManager.Instance.AddItem(_selectedRecipe.resultItem, _selectedRecipe.resultAmount * _craftAmount);
-
-            // 제작 후 재료 수량이 변했으니 UI 갱신
-            UpdateUI();
-            Debug.Log($"{_selectedRecipe.resultItem.itemName} 제작 완료!");
+            CollectItem(); // 완료 상태면 인벤토리로 수령
         }
-        else
+        else if (!_isCrafting && CanCraft(_selectedRecipe, 1))
         {
-            Debug.Log("재료가 부족합니다!");
+            StartCoroutine(CraftRoutine()); // 제작 시작
         }
     }
 
+    IEnumerator CraftRoutine()
+    {
+        _isCrafting = true;
+        craftButton.interactable = false;
+
+        ConsumeIngredients(_selectedRecipe, 1);
+        UpdateIngredientsUI(); // 소모 후 재료 수량 실시간 반영
+
+        float elapsed = 0f;
+        float duration = _selectedRecipe.craftTime;
+
+        if (craftSlider != null)
+        {
+            craftSlider.maxValue = duration;
+            craftSlider.value = 0;
+        }
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            if (craftSlider != null) craftSlider.value = elapsed;
+            if (buttonText != null) buttonText.text = $"{(duration - elapsed):F1}s";
+            yield return null;
+        }
+
+        _isCrafting = false;
+        _isFinished = true;
+        craftButton.interactable = true;
+        if (buttonText != null) buttonText.text = "COLLECT";
+    }
+
+    void CollectItem()
+    {
+        if (InventoryManager.Instance.AddItem(_selectedRecipe.resultItem, _selectedRecipe.resultAmount))
+        {
+            Debug.Log($"<color=green>[제작]</color> {_selectedRecipe.resultItem.itemName} 수령 완료!");
+            ResetStateUI();
+        }
+        else
+        {
+            Debug.Log("<color=red>[경고]</color> 인벤토리가 가득 찼습니다!");
+        }
+    }
+
+    private void ResetStateUI()
+    {
+        _isFinished = false;
+        _isCrafting = false;
+
+        if (craftSlider != null) craftSlider.value = 0;
+
+        // 재료 체크 후 버튼 활성화 여부 결정
+        CheckCanCraft();
+    }
+
+    private void CheckCanCraft()
+    {
+        if (_selectedRecipe == null) return;
+
+        bool hasIngredients = CanCraft(_selectedRecipe, 1);
+
+        if (craftButton != null)
+        {
+            craftButton.interactable = hasIngredients;
+            if (buttonText != null)
+                buttonText.text = hasIngredients ? "CRAFT" : "LACK MATERIALS";
+        }
+    }
+
+    // --- 데이터 검증 및 소모 ---
     bool CanCraft(CraftingRecipe recipe, int count)
     {
         foreach (var ing in recipe.ingredients)
         {
-            int myAmount = InventoryManager.Instance.GetItemCount(ing.item);
-            if (myAmount < ing.amount * count) return false;
+            if (InventoryManager.Instance.GetItemCount(ing.item) < ing.amount * count) return false;
         }
         return true;
     }
@@ -96,8 +216,6 @@ public class CraftingUI : MonoBehaviour
     void ConsumeIngredients(CraftingRecipe recipe, int count)
     {
         foreach (var ing in recipe.ingredients)
-        {
             InventoryManager.Instance.RemoveItem(ing.item, ing.amount * count);
-        }
     }
 }

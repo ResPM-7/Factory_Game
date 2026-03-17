@@ -65,8 +65,29 @@ public class InventoryManager : MonoBehaviour
                 Debug.Log("I 키로 인벤토리 열기");
             }
         }
+        if (Keyboard.current.f12Key.wasPressedThisFrame)
+        {
+            ToggleCraftingUI();
+        }
     }
+    private void ToggleCraftingUI()
+    {
+        if (CraftingUI.Instance == null) return;
 
+        // 현재 제작창이 켜져 있는지 확인
+        bool isCurrentlyOpen = CraftingUI.Instance.uiPanel.activeSelf;
+
+        if (isCurrentlyOpen)
+        {
+            // 켜져 있다면? UIManager를 통해 안전하게 닫기 (조작 복구 포함)
+            UIManager.Instance.CloseAllMenus();
+        }
+        else
+        {
+            // 꺼져 있다면? 제작창 열기
+            CraftingUI.Instance.OpenCraftingUI();
+        }
+    }
     // OpenInventory 함수가 없다면 이것도 추가해주세요.
     public void OpenInventory()
     {
@@ -78,7 +99,16 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    public void SetInventoryState(bool isOpen) => isInventoryOpen = isOpen;
+    // ✨ 인벤토리 상태 변경과 UI 활성화/비활성화를 하나로 합칩니다.
+    public void SetInventoryState(bool isOpen)
+    {
+        isInventoryOpen = isOpen;
+
+        if (inventoryUI != null)
+        {
+            inventoryUI.SetActive(isOpen);
+        }
+    }
 
     // ✨ [조작 모드 전환]
     public void UpdateInputState()
