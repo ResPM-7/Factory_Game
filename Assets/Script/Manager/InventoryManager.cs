@@ -8,22 +8,24 @@ public class InventoryManager : MonoBehaviour, IUIPanel
 {
     public static InventoryManager Instance;
 
-    [Header("드래그 전용 UI")]
-    public GameObject dragObject;
-    public RawImage dragIcon;
-    public Text dragAmountText;
-
     [Header("모든 슬롯 리스트")]
-    public InventorySlot[] allSlots; // 여기에 30개 슬롯이 연결되어야 합니다.
+    public InventorySlot[] allSlots;
 
     [Header("UI 오브젝트")]
     public GameObject inventoryUI;
 
-    // ✨ 에러의 주범! 사라졌던 필수 변수들입니다.
+    [Header("마우스 따라다니는 UI")]
+    public GameObject dragObject;
+    public RawImage dragIcon;
+    public Text dragAmountText;
+
     private StarterAssetsInputs _playerInputs;
     private PlayerInput _playerInputComponent;
     private CinemachineInputAxisController _cameraInputController;
     private bool isInventoryOpen = false;
+
+    // ✨ 클릭 이동을 위한 핵심 변수: 현재 선택된(들고 있는) 슬롯
+    private InventorySlot _selectedSlot = null;
 
     void Awake() => Instance = this;
 
@@ -43,20 +45,69 @@ public class InventoryManager : MonoBehaviour, IUIPanel
     {
         if (Keyboard.current != null && Keyboard.current.iKey.wasPressedThisFrame)
         {
-            // 1. 내 UI(인벤토리)가 켜져있으면 끄고, 꺼져있으면 켭니다.
             SetInventoryState(!inventoryUI.activeSelf);
-
-            // 2. 조작 모드 변경은 UIManager에게 알아서 하라고 던져줍니다.
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.UpdateInputState();
-            }
+            if (UIManager.Instance != null) UIManager.Instance.UpdateInputState();
         }
 
         if (Keyboard.current != null && Keyboard.current.f12Key.wasPressedThisFrame)
         {
             ToggleCraftingUI();
         }
+
+        // ✨ [추가된 부분] 아이템을 들고(선택하고) 있을 때 G 키를 누르면 바닥에 버립니다.
+        if (_selectedSlot != null && Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame)
+        {
+            DropSelectedItem();
+        }
+
+        if (_selectedSlot != null && dragObject != null && dragObject.activeSelf)
+        {
+            // New Input System의 마우스 위치 값을 가져옵니다.
+            dragObject.transform.position = Mouse.current.position.ReadValue();
+        }
+    }
+
+    private void DropSelectedItem()
+    {
+        if (_selectedSlot == null || _selectedSlot.item == null || _selectedSlot.item.prefab == null) return;
+
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player == null)
+        {
+            Debug.LogError("'Player' 태그를 가진 오브젝트를 찾을 수 없습니다!");
+            return;
+        }
+
+        ItemData itemToDrop = _selectedSlot.item;
+        int amountToDrop = _selectedSlot.amount;
+        Transform playerTransform = player.transform;
+
+        Vector3 dropPosition = playerTransform.position + (playerTransform.forward * 1.2f) + (Vector3.up * 1.0f);
+
+        if (Physics.Raycast(dropPosition, Vector3.down, out RaycastHit hit, 5f))
+        {
+            dropPosition.y = hit.point.y + 0.1f;
+        }
+
+        GameObject droppedItem = ItemPoolManager.Instance.GetItem(itemToDrop, dropPosition, Quaternion.identity);
+
+        if (droppedItem.TryGetComponent(out ItemPickup pickupScript))
+        {
+            pickupScript.item = itemToDrop;
+            pickupScript.amount = amountToDrop;
+        }
+
+        if (droppedItem.TryGetComponent(out Rigidbody rb))
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.AddForce(playerTransform.forward * 1.0f, ForceMode.Impulse);
+        }
+
+        Debug.Log($"{itemToDrop.itemName}을(를) 플레이어 앞에 버렸습니다.");
+
+        // ✨ 버린 후 슬롯을 비우고 선택 상태를 해제합니다.
+        _selectedSlot.ClearSlot();
+        ClearSelection();
     }
 
     private void ToggleCraftingUI()
@@ -88,6 +139,128 @@ public class InventoryManager : MonoBehaviour, IUIPanel
         }
     }
 
+    public void OnSlotClicked(InventorySlot clickedSlot)
+    {
+        // 1. 아무것도 안 들고 있을 때 (집어들기)
+        if (_selectedSlot == null)
+        {
+            if (clickedSlot.item == null) return;
+
+            _selectedSlot = clickedSlot;
+            _selectedSlot.HighlightSlot(true);
+
+            if (dragObject != null)
+            {
+                dragObject.SetActive(true);
+
+                // 마우스 아이콘 이미지 세팅 및 불투명하게 만들기
+                if (dragIcon != null && _selectedSlot.item.iconTexture != null)
+                {
+                    dragIcon.texture = _selectedSlot.item.iconTexture;
+                    dragIcon.enabled = true;
+
+                    Color dragColor = dragIcon.color;
+                    dragColor.a = 1.0f;
+                    dragIcon.color = dragColor;
+                }
+
+                // 텍스트 활성화 및 개수 표시
+                if (dragAmountText != null)
+                {
+                    dragAmountText.enabled = true;
+                    dragAmountText.text = _selectedSlot.amount > 1 ? _selectedSlot.amount.ToString() : "";
+                }
+
+                // ✨ [수정 1] 인벤토리 슬롯에 있는 원래 그림과 텍스트를 "완전히 안 보이게" 끕니다.
+                if (_selectedSlot.iconRawImage != null)
+                {
+                    _selectedSlot.iconRawImage.enabled = false;
+                }
+                if (_selectedSlot.stackText != null)
+                {
+                    _selectedSlot.stackText.enabled = false;
+                }
+            }
+        }
+        // 2. 아이템을 들고 있을 때 (내려놓기 또는 합치기)
+        else
+        {
+            if (_selectedSlot == clickedSlot)
+            {
+                ClearSelection();
+            }
+            else
+            {
+                MoveOrMergeItem(_selectedSlot, clickedSlot);
+                ClearSelection();
+            }
+        }
+    }
+
+    private void ClearSelection()
+    {
+        if (_selectedSlot != null)
+        {
+            // ✨ [핵심 추가 2] 중요! 아이템을 내려놓거나 병합했으니,
+            // 원래 슬롯의 UI를 다시 켜줍니다. (남은 개수만큼 다시 그려짐)
+            _selectedSlot.UpdateSlotUI();
+
+            _selectedSlot.HighlightSlot(false); // 테두리 끄기
+            _selectedSlot = null;
+        }
+
+        // 마우스 아이콘 끄기
+        if (dragObject != null)
+        {
+            dragObject.SetActive(false);
+        }
+    }
+
+    // ✨ [추가] 만능 아이템 이동/병합/스왑 함수
+    private void MoveOrMergeItem(InventorySlot sourceSlot, InventorySlot targetSlot)
+    {
+        if (sourceSlot.item == null) return;
+
+        // 1. 도착지가 [빈 슬롯]인 경우 -> 그대로 이동
+        if (targetSlot.item == null)
+        {
+            targetSlot.item = sourceSlot.item;
+            targetSlot.amount = sourceSlot.amount;
+            sourceSlot.ClearSlot(); // 원래 자리는 비워줌
+        }
+        // 2. 도착지에 [같은 아이템]이 있는 경우 -> 병합(Merge)
+        else if (targetSlot.item == sourceSlot.item)
+        {
+            int maxStack = targetSlot.item.maxStackSize;
+            int spaceLeft = maxStack - targetSlot.amount;
+
+            if (spaceLeft > 0)
+            {
+                int amountToMove = Mathf.Min(spaceLeft, sourceSlot.amount);
+                targetSlot.amount += amountToMove;
+                sourceSlot.amount -= amountToMove; // 남은 건 알아서 제자리에!
+
+                if (sourceSlot.amount <= 0) sourceSlot.ClearSlot();
+            }
+        }
+        // 3. 도착지에 [다른 아이템]이 있는 경우 -> 맞바꾸기(Swap)
+        else
+        {
+            ItemData tempItem = targetSlot.item;
+            int tempAmount = targetSlot.amount;
+
+            targetSlot.item = sourceSlot.item;
+            targetSlot.amount = sourceSlot.amount;
+
+            sourceSlot.item = tempItem;
+            sourceSlot.amount = tempAmount;
+        }
+
+        // 4. 두 슬롯의 그림과 텍스트 새로고침
+        sourceSlot.UpdateSlotUI();
+        targetSlot.UpdateSlotUI();
+    }
+
     // ✨ 인벤토리 상태 변경과 UI 활성화/비활성화를 하나로 합칩니다.
     public void SetInventoryState(bool isOpen)
     {
@@ -96,6 +269,13 @@ public class InventoryManager : MonoBehaviour, IUIPanel
         if (inventoryUI != null)
         {
             inventoryUI.SetActive(isOpen);
+        }
+
+        // ✨ [수정 2] 인벤토리를 닫을 때(!isOpen), 아이템을 들고 있다면(선택된 슬롯이 있다면)
+        if (!isOpen && _selectedSlot != null)
+        {
+            // 선택을 취소하고 아이템을 원래 자리에 돌려놓습니다. (마우스 아이콘도 꺼짐)
+            ClearSelection();
         }
     }
 

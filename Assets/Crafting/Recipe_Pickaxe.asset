@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipe
   resultItem: {fileID: 11400000, guid: 7b0efcbcaa1f97147bcd0731f0b79090, type: 2}
   resultAmount: 1
-  craftTime: 50
+  craftTime: 3
   ingredients:
   - item: {fileID: 11400000, guid: 5379ae1e55b88c34b96076abe6381754, type: 2}
     amount: 2

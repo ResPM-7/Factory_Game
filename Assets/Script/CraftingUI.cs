@@ -50,14 +50,26 @@ public class CraftingUI : MonoBehaviour, IUIPanel
 
     void Update()
     {
-        // 열려있는 제작대의 실시간 진행 상태를 UI에 반영
-        if (uiPanel.activeSelf && _targetStation != null && _targetStation.isCrafting)
+        if (uiPanel.activeSelf && _targetStation != null)
         {
-            float duration = _targetStation.currentRecipe.craftTime;
-            float elapsed = _targetStation.elapsedTime;
+            // 1. 제작 중일 때 (게이지 차오름)
+            if (_targetStation.isCrafting)
+            {
+                float duration = _targetStation.currentRecipe.craftTime;
+                float elapsed = _targetStation.elapsedTime;
 
-            if (craftSlider != null) craftSlider.value = elapsed;
-            if (buttonText != null) buttonText.text = $"{(duration - elapsed):F1}s";
+                if (craftSlider != null) craftSlider.value = elapsed;
+                if (buttonText != null) buttonText.text = $"{(duration - elapsed):F1}s";
+            }
+            // 2. ✨ 방금 제작이 끝났을 때 (버튼 활성화)
+            else if (_targetStation.isFinished && craftButton.interactable == false)
+            {
+                if (craftSlider != null) craftSlider.value = _targetStation.currentRecipe.craftTime;
+                if (buttonText != null) buttonText.text = "COLLECT";
+
+                // ✨ 핵심: 재료가 없어서 꺼졌던 버튼을 수령할 수 있게 강제로 켜줍니다!
+                craftButton.interactable = true;
+            }
         }
     }
 
@@ -79,25 +91,30 @@ public class CraftingUI : MonoBehaviour, IUIPanel
     public void OpenCraftingUI(CraftingStation station = null)
     {
         _targetStation = station;
-
-        // 1. 제작창 패널 활성화
         SetCraftingUIState(true);
 
-        // 2. ✨ 추가된 로직: 인벤토리 매니저를 통해 인벤토리 UI를 함께 엽니다.
         if (InventoryManager.Instance != null && !InventoryManager.Instance.inventoryUI.activeSelf)
         {
             InventoryManager.Instance.SetInventoryState(true);
         }
 
-        // 3. 기존 레시피 및 상태 갱신 로직
         if (_targetStation != null && _targetStation.currentRecipe != null)
         {
+            // 여기서 재료 체크를 하면서 버튼이 꺼질 수 있습니다.
             SelectRecipe(_targetStation.currentRecipe);
 
             if (_targetStation.isFinished)
             {
                 if (craftSlider != null) craftSlider.value = _targetStation.currentRecipe.craftTime;
                 if (buttonText != null) buttonText.text = "COLLECT";
+
+                // ✨ 핵심: 완료 상태로 창을 열면, 무조건 버튼을 클릭할 수 있게 켜줍니다!
+                if (craftButton != null) craftButton.interactable = true;
+            }
+            else if (_targetStation.isCrafting)
+            {
+                // ✨ 제작 중인 상태로 창을 열면 버튼을 잠가둡니다.
+                if (craftButton != null) craftButton.interactable = false;
             }
         }
         else
@@ -219,10 +236,20 @@ public class CraftingUI : MonoBehaviour, IUIPanel
 
     void CollectItem()
     {
-        if (InventoryManager.Instance.AddItem(_targetStation.currentRecipe.resultItem, _targetStation.currentRecipe.resultAmount))
+        // 1. 인벤토리에 아이템 추가 시도
+        bool added = InventoryManager.Instance.AddItem(_targetStation.currentRecipe.resultItem, _targetStation.currentRecipe.resultAmount);
+
+        if (added)
         {
+            // 2. 인벤토리에 잘 들어갔다면 제작대 상태 초기화
             _targetStation.Collect();
-            ResetStateUI();
+            ResetStateUI(); // 이 함수가 돌면서 다시 'CRAFT' 버튼으로 돌려놓을 겁니다.
+        }
+        else
+        {
+            // 3. 인벤토리가 꽉 차서 못 받았다면?
+            Debug.Log("인벤토리가 가득 차서 아이템을 받을 수 없습니다!");
+            if (buttonText != null) buttonText.text = "인벤이 가득 찼습니다";
         }
     }
 
@@ -247,7 +274,7 @@ public class CraftingUI : MonoBehaviour, IUIPanel
         {
             craftButton.interactable = hasIngredients;
             if (buttonText != null)
-                buttonText.text = hasIngredients ? "CRAFT" : "LACK MATERIALS";
+                buttonText.text = hasIngredients ? "CRAFT" : "재료부족";
         }
     }
 
