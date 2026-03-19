@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5784dc3a77bf16d4ea9cb602e50d5bea, type: 3}
+  m_Name: Chest
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: "\uC0C1\uC790"
+  iconTexture: {fileID: 8400000, guid: 7e1baec873b1b1a41b12ea30eda48218, type: 2}
+  maxStackSize: 64
+  prefab: {fileID: 6923355194621819749, guid: a503a629fdc7ff3479916981e388fc5c, type: 3}
+  isBuildable: 1
+  placeablePrefab: {fileID: 8651016744789823868, guid: 92d2f16c8bae2d1478c253b38c85b6ad, type: 3}
+  ghostObjectName: Ghost_Chest
+  description: "\uBE4C\uB4DC \uC544\uC774\uD15C"

@@ -1,11 +1,21 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Item", menuName = "Inventory/Item")]
 public class ItemData : ScriptableObject
 {
-    public string itemName;      // ¾ÆÀÌÅÛ ÀÌ¸§
+    public string itemName;      // ì•„ì´í…œ ì´ë¦„
     public Texture iconTexture;
-    public int maxStackSize = 64; // ¸¶ÀÎÅ©·¡ÇÁÆ®Ã³·³ ÃÖ´ë ÁßÃ¸ °³¼ö (°î±ªÀÌ´Â 1, ³ª¸ÓÁö´Â 64)
-    public GameObject prefab;    // ¹Ù´Ú¿¡ ¹ö¸®°Å³ª ¼³Ä¡ÇÒ ¶§ ¼ÒÈ¯µÉ ¿ÀºêÁ§Æ®
-    [TextArea] public string description; // ¾ÆÀÌÅÛ ¼³¸í
+    public int maxStackSize = 64; // ë§ˆì¸í¬ë˜í”„íŠ¸ì²˜ëŸ¼ ìµœëŒ€ ì¤‘ì²© ê°œìˆ˜ (ê³¡ê´­ì´ëŠ” 1, ë‚˜ë¨¸ì§€ëŠ” 64)
+    public GameObject prefab;    // ë°”ë‹¥ì— ë²„ë¦¬ê±°ë‚˜ ì„¤ì¹˜í•  ë•Œ ì†Œí™˜ë  ì˜¤ë¸Œì íŠ¸
+
+    [Header("ê±´ì¶•(Blueprint) ì„¤ì •")]
+    public bool isBuildable;
+    public GameObject placeablePrefab; // ì§„ì§œ ìƒì„±ë  ê±´ë¬¼
+
+    // âœ¨ [ìˆ˜ì •ë¨] í”„ë¦¬íŒ¹ ëŒ€ì‹  í•˜ì´ì–´ë¼í‚¤ì— ìˆëŠ” 'ê³ ìŠ¤íŠ¸ ì˜¤ë¸Œì íŠ¸ ì´ë¦„'ì„ ì ìŠµë‹ˆë‹¤.
+    // ì˜ˆ: "Box_Ghost", "Workbench_Ghost"
+    public string ghostObjectName;
+
+    [TextArea] public string description; // ì•„ì´í…œ ì„¤ëª…
+
 }

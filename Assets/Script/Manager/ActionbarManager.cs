@@ -1,20 +1,20 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Controls; // KeyControl »ç¿ëÀ» À§ÇØ Ãß°¡
+using UnityEngine.InputSystem.Controls; // KeyControl ì‚¬ìš©ì„ ìœ„í•´ ì¶”ê°€
 
 public class ActionbarManager : MonoBehaviour
 {
-    [Header("½½·Ô ¼³Á¤")]
-    public RectTransform[] slots;      // ¾×¼Ç¹ÙÀÇ °¢ ½½·Ô 10°³
-    public Image highlightImage;      // ¼±ÅÃµÈ Ä­À» º¸¿©ÁÙ °­Á¶ ÀÌ¹ÌÁö
+    [Header("ìŠ¬ë¡¯ ì„¤ì •")]
+    public RectTransform[] slots;      // ì•¡ì…˜ë°”ì˜ ê° ìŠ¬ë¡¯ 10ê°œ
+    public Image highlightImage;      // ì„ íƒëœ ì¹¸ì„ ë³´ì—¬ì¤„ ê°•ì¡° ì´ë¯¸ì§€
 
-    private KeyControl[] _hotbarKeys; // ¼ıÀÚ Å°µéÀ» ´ã¾ÆµÑ ¹è¿­
+    private KeyControl[] _hotbarKeys; // ìˆ«ì í‚¤ë“¤ì„ ë‹´ì•„ë‘˜ ë°°ì—´
     private int _currentSlotIndex = 0;
 
     void Start()
     {
-        // 1. Å°º¸µå Å° ÇÒ´ç (1~9, 0 ¼ø¼­)
+        // 1. í‚¤ë³´ë“œ í‚¤ í• ë‹¹ (1~9, 0 ìˆœì„œ)
         var kb = Keyboard.current;
         if (kb != null)
         {
@@ -24,7 +24,7 @@ public class ActionbarManager : MonoBehaviour
             };
         }
 
-        // 2. UI ·¹ÀÌ¾Æ¿ô °­Á¦ ¾÷µ¥ÀÌÆ® ¹× ÃÊ±âÈ­
+        // 2. UI ë ˆì´ì•„ì›ƒ ê°•ì œ ì—…ë°ì´íŠ¸ ë° ì´ˆê¸°í™”
         Canvas.ForceUpdateCanvases();
         SelectSlot(0);
     }
@@ -33,13 +33,13 @@ public class ActionbarManager : MonoBehaviour
     {
         if (_hotbarKeys == null) return;
 
-        // 3. ¹İº¹¹®À» ÅëÇØ ¾î¶² ¼ıÀÚ Å°°¡ ´­·È´ÂÁö Ã¼Å©
+        // 3. ë°˜ë³µë¬¸ì„ í†µí•´ ì–´ë–¤ ìˆ«ì í‚¤ê°€ ëˆŒë ¸ëŠ”ì§€ ì²´í¬
         for (int i = 0; i < _hotbarKeys.Length; i++)
         {
             if (_hotbarKeys[i].wasPressedThisFrame)
             {
                 SelectSlot(i);
-                break; // Å° ÇÏ³ª°¡ ´­·ÈÀ¸¸é ·çÇÁ Á¾·á
+                break; // í‚¤ í•˜ë‚˜ê°€ ëˆŒë ¸ìœ¼ë©´ ë£¨í”„ ì¢…ë£Œ
             }
         }
     }
@@ -50,11 +50,10 @@ public class ActionbarManager : MonoBehaviour
 
         _currentSlotIndex = index;
 
+        // 1. í•˜ì´ë¼ì´íŠ¸(ë…¸ë€ í…Œë‘ë¦¬) ì´ë™
         if (highlightImage != null)
         {
-            // Outline ¿ÀºêÁ§Æ®¸¦ Ã£¾Æ Á¤È®ÇÑ À§Ä¡·Î ÀÌµ¿
             Transform outlineTransform = slots[index].Find("Outline");
-
             if (outlineTransform != null)
             {
                 highlightImage.transform.position = outlineTransform.position;
@@ -63,6 +62,34 @@ public class ActionbarManager : MonoBehaviour
             {
                 highlightImage.transform.position = slots[index].position;
             }
+        }
+
+        // 2. âœ¨ ì„ íƒí•œ ìŠ¬ë¡¯ì˜ ì•„ì´í…œ ë°ì´í„°ë¥¼ ê°€ì ¸ì˜µë‹ˆë‹¤.
+        // (ì•¡ì…˜ë°”ì˜ UI ìŠ¬ë¡¯ ì˜¤ë¸Œì íŠ¸ì— InventorySlot ìŠ¤í¬ë¦½íŠ¸ê°€ ë¶™ì–´ìˆë‹¤ê³  ê°€ì •í•©ë‹ˆë‹¤)
+        InventorySlot selectedSlot = slots[index].GetComponent<InventorySlot>();
+
+        // ì•„ì´í…œì´ ìŠ¬ë¡¯ì— ì¡´ì¬í•œë‹¤ë©´?
+        if (selectedSlot != null && selectedSlot.item != null)
+        {
+            // ê·¸ ì•„ì´í…œì´ ê±´ì¶• ê°€ëŠ¥(Is Buildable ì²´í¬ë¨) ë„ë©´ì´ë¼ë©´?
+            if (selectedSlot.item.isBuildable)
+            {
+                if (BuildManager.Instance != null)
+                {
+                    // ê±´ì¶• ë§¤ë‹ˆì €ì—ê²Œ ë„ë©´ì„ ë„˜ê²¨ì£¼ê³  ê±´ì¶• ëª¨ë“œë¥¼ ì¼­ë‹ˆë‹¤!
+                    BuildManager.Instance.StartBuilding(selectedSlot.item);
+                }
+            }
+            else
+            {
+                // ì¼ë°˜ ì•„ì´í…œ(ë‚˜ë¬´, ëŒ ë“±)ì„ ë“¤ì—ˆë‹¤ë©´ ê±´ì¶• ëª¨ë“œë¥¼ ë•ë‹ˆë‹¤.
+                if (BuildManager.Instance != null) BuildManager.Instance.CancelBuilding();
+            }
+        }
+        else
+        {
+            // ë¹ˆ ìŠ¬ë¡¯ì„ ì„ íƒí–ˆë‹¤ë©´ ê±´ì¶• ëª¨ë“œë¥¼ ë•ë‹ˆë‹¤.
+            if (BuildManager.Instance != null) BuildManager.Instance.CancelBuilding();
         }
     }
 }

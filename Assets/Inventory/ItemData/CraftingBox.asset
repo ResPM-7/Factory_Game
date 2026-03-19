@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5784dc3a77bf16d4ea9cb602e50d5bea, type: 3}
+  m_Name: CraftingBox
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: "\uC81C\uC791\uB300"
+  iconTexture: {fileID: 8400000, guid: 7e1baec873b1b1a41b12ea30eda48218, type: 2}
+  maxStackSize: 64
+  prefab: {fileID: 6923355194621819749, guid: a503a629fdc7ff3479916981e388fc5c, type: 3}
+  isBuildable: 1
+  placeablePrefab: {fileID: 1715382860557690212, guid: 7de4fb5d86ac301438a239799c7f9e17, type: 3}
+  ghostObjectName: Ghost_Crafting
+  description: "\uBE4C\uB4DC \uC544\uC774\uD15C"

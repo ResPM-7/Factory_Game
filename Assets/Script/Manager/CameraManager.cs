@@ -33,6 +33,6 @@ public class CameraManager : MonoBehaviour
         isFirstPerson = !isFirstPerson;
         thirdPersonCamera.Priority = isFirstPerson ? 10 : 20;
         firstPersonCamera.Priority = isFirstPerson ? 20 : 10;
-        Debug.Log(isFirstPerson ? "1ÀÎÄª ½ÃÁ¡" : "3ÀÎÄª ½ÃÁ¡");
+        //Debug.Log(isFirstPerson ? "1ÀÎÄª ½ÃÁ¡" : "3ÀÎÄª ½ÃÁ¡");
     }
 }

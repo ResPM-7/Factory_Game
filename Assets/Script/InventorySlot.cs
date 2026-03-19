@@ -73,7 +73,7 @@ public class InventorySlot : MonoBehaviour
     public void OnClickSlot()
     {
         // 1. 버튼 클릭 자체가 작동하는지 확인하는 로그
-        Debug.Log($"[슬롯 확인] '{gameObject.name}' 슬롯이 클릭되었습니다! (들어있는 아이템: {(item != null ? item.itemName : "비어있음")})");
+        //Debug.Log($"[슬롯 확인] '{gameObject.name}' 슬롯이 클릭되었습니다! (들어있는 아이템: {(item != null ? item.itemName : "비어있음")})");
 
         if (InventoryManager.Instance != null)
         {
