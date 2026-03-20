@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1417209743805799631}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Pivot_Crafting
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -44,8 +44,9 @@ GameObject:
   - component: {fileID: 879935566531176228}
   - component: {fileID: 1057020601919441500}
   - component: {fileID: 2621994509902924338}
+  - component: {fileID: 6451181041513826347}
   - component: {fileID: 3558805203927562592}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Craft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -147,6 +148,19 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6451181041513826347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3671329880268198572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0796d405fba981b479a97047ab4f1c51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChooseEntity
+  entityType: 1
 --- !u!114 &3558805203927562592
 MonoBehaviour:
   m_ObjectHideFlags: 0

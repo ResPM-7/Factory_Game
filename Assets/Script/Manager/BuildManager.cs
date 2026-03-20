@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public class BuildManager : MonoBehaviour
 {
@@ -8,26 +9,31 @@ public class BuildManager : MonoBehaviour
     [Header("건축 상태")]
     public bool isBuildingMode = false;
     private ItemData currentBlueprintData;
-
-    // ✨ [추가] 하이어라키에 미리 만들어둔 고스트들의 '부모 오브젝트'를 연결합니다.
     public GameObject ghostRoot;
 
     private Camera mainCamera;
 
     [Header("건축 설정")]
     public LayerMask groundLayer;
-    public float maxBuildDistance = 15f;
+    public float maxBuildDistance = 15f; 
     public bool useGridSnap = true;
     public float gridSize = 1f;
 
+    // ✨ [새로 추가된 핵심 기능] 겹침 방지 및 색상 제어
+    [Header("건축 방해물 & 색상 설정")]
+    public LayerMask obstacleLayer;      // 겹치면 안 되는 물체들의 레이어 (보통 Default, Player 등)
+    public Vector3 boxSize = new Vector3(0.45f, 0.45f, 0.45f); // 겹침을 검사할 가상 박스의 절반 크기
+    public Color validColor = new Color(0, 0, 1, 0.5f);   // 설치 가능: 반투명 파란색
+    public Color invalidColor = new Color(1, 0, 0, 0.5f); // 설치 불가: 반투명 빨간색
+
     private Vector3 _lastGhostPosition;
+    private bool _canBuild = false;      // 현재 설치 가능한 상태인가?
+    private List<Renderer> _ghostRenderers = new List<Renderer>(); // 고스트의 색상을 바꿀 렌더러들
 
     void Awake()
     {
         Instance = this;
         mainCamera = Camera.main;
-
-        // 시작할 때 고스트 루트는 무조건 꺼둡니다.
         if (ghostRoot != null) ghostRoot.SetActive(false);
     }
 
@@ -46,19 +52,10 @@ public class BuildManager : MonoBehaviour
         }
 
         Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        Debug.DrawRay(ray.origin, ray.direction * maxBuildDistance, Color.red);
 
-        // 1. 레이저가 땅(Ground) 레이어에 맞았을 때
         if (Physics.Raycast(ray, out RaycastHit hit, maxBuildDistance, groundLayer))
         {
-            // ✨ [디버그 1] 맞은 위치 확인
-            //Debug.Log($"🟢 [1. 레이저 적중] 레이저가 땅('{hit.collider.name}')에 맞았습니다! (좌표: {hit.point})");
-
-            if (!ghostRoot.activeSelf)
-            {
-                ghostRoot.SetActive(true);
-                //Debug.Log("🟢 [2. 부모 활성화] 부모 오브젝트(Blue_print)를 켰습니다.");
-            }
+            if (!ghostRoot.activeSelf) ghostRoot.SetActive(true);
 
             Vector3 targetPosition = hit.point;
             if (useGridSnap)
@@ -67,60 +64,56 @@ public class BuildManager : MonoBehaviour
                 targetPosition.z = Mathf.Round(targetPosition.z / gridSize) * gridSize;
             }
 
-            // ✨ [디버그 3] 최종 이동 목표 좌표 확인
-            //Debug.Log($"🟢 [3. 위치 계산] 청사진이 이동할 최종 좌표: {targetPosition}");
-
+            // 고스트 이동
             if (_lastGhostPosition != targetPosition)
             {
                 ghostRoot.transform.position = targetPosition;
                 _lastGhostPosition = targetPosition;
-                //Debug.Log($"🟢 [4. 고스트 이동] 청사진을 {targetPosition} (으)로 이동시켰습니다.");
             }
 
-            // ✨ [디버그 5] 핵심! 켜져 있는 자식(도면)이 진짜로 있는지 검사합니다.
-            int activeChildCount = 0;
-            foreach (Transform child in ghostRoot.transform)
+            // ✨ 1. 겹침 검사 (가상의 박스를 만들어서 장애물이 있는지 확인)
+            // 중심점을 땅바닥에서 박스 높이만큼 위로 살짝 올려서 검사합니다.
+            Vector3 checkCenter = targetPosition + Vector3.up * boxSize.y;
+            Collider[] colliders = Physics.OverlapBox(checkCenter, boxSize, ghostRoot.transform.rotation, obstacleLayer);
+
+            // 겹친 물체가 하나도 없으면(0) 설치 가능!
+            _canBuild = (colliders.Length == 0);
+
+            // ✨ 2. 색상 변경 (가능하면 파랑, 불가능하면 빨강)
+            Color targetColor = _canBuild ? validColor : invalidColor;
+            foreach (var rend in _ghostRenderers)
             {
-                if (child.gameObject.activeInHierarchy)
-                {
-                    activeChildCount++;
-                    //Debug.Log($"🟢 [5. 자식 상태] 현재 눈에 보여야 할 청사진: {child.name}");
-                }
+                // 머티리얼의 색상을 실시간으로 바꿉니다.
+                rend.material.color = targetColor;
             }
 
-            // 켜진 자식이 하나도 없다면 치명적 오류 띄우기
-            if (activeChildCount == 0)
-            {
-                //Debug.LogError("🔴 [오류] 부모(Blue_print)는 켜졌는데, 그 안에 켜져 있는 청사진(자식)이 하나도 없습니다! StartBuilding에서 자식을 못 켰습니다.");
-            }
-
+            // ✨ 3. 클릭 시 설치 (설치 가능할 때만!)
             if (mouse.leftButton.wasPressedThisFrame)
             {
-                PlaceBuilding(targetPosition);
+                if (_canBuild)
+                {
+                    PlaceBuilding(targetPosition);
+                }
+                else
+                {
+                    Debug.Log("여기는 다른 물체와 겹쳐서 건물을 설치할 수 없습니다!");
+                }
             }
         }
         else
         {
-            if (Physics.Raycast(ray, out RaycastHit anyHit, maxBuildDistance))
-            {
-                //Debug.LogWarning($"🔴 [레이저 막힘] 레이저가 땅이 아니라 '{anyHit.collider.name}' (레이어: {LayerMask.LayerToName(anyHit.collider.gameObject.layer)})에 먼저 맞았습니다!");
-            }
-
             if (ghostRoot.activeSelf) ghostRoot.SetActive(false);
         }
     }
 
     public void StartBuilding(ItemData blueprintItem)
     {
-        // 도면이 아니거나, 켤 고스트 이름이 없으면 무시
         if (!blueprintItem.isBuildable || string.IsNullOrEmpty(blueprintItem.ghostObjectName)) return;
-
         if (isBuildingMode && currentBlueprintData == blueprintItem) return;
 
         currentBlueprintData = blueprintItem;
         isBuildingMode = true;
 
-        // ✨ [핵심] 고스트 루트 안에서 이름이 일치하는 자식만 켜고, 나머지는 다 끕니다.
         bool foundGhost = false;
         foreach (Transform child in ghostRoot.transform)
         {
@@ -128,6 +121,10 @@ public class BuildManager : MonoBehaviour
             {
                 child.gameObject.SetActive(true);
                 foundGhost = true;
+
+                // ✨ 방금 켜진 고스트 안에 있는 모든 Renderer(외형)를 리스트에 담아둡니다. (색상을 바꾸기 위해)
+                _ghostRenderers.Clear();
+                _ghostRenderers.AddRange(child.GetComponentsInChildren<Renderer>());
             }
             else
             {
@@ -137,7 +134,6 @@ public class BuildManager : MonoBehaviour
 
         if (!foundGhost)
         {
-            Debug.LogError($"[건축 오류] '{blueprintItem.ghostObjectName}' 이름을 가진 고스트를 찾을 수 없습니다!");
             CancelBuilding();
             return;
         }
@@ -147,9 +143,7 @@ public class BuildManager : MonoBehaviour
 
     private void PlaceBuilding(Vector3 position)
     {
-        // 실제 건물 프리팹 생성 (회전값은 ghostRoot의 회전값을 따라갑니다)
         Instantiate(currentBlueprintData.placeablePrefab, position, ghostRoot.transform.rotation);
-
         InventoryManager.Instance.RemoveItem(currentBlueprintData, 1);
 
         if (InventoryManager.Instance.GetItemCount(currentBlueprintData) <= 0)

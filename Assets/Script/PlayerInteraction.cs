@@ -33,18 +33,20 @@ public class PlayerInteraction : MonoBehaviour
     {
         Vector3 origin = transform.position + (Vector3.up * offsetHeight);
 
+        // 1. 설정한 interactLayer(예: Building)에만 레이저가 반응합니다.
         if (Physics.Raycast(origin, transform.forward, out RaycastHit hit, interactDistance, interactLayer))
         {
-            Debug.Log($"레이저가 맞은 물체: {hit.collider.gameObject.name}"); // 👈 로그 추가
+            Debug.Log($"레이저가 맞은 물체: {hit.collider.gameObject.name}");
 
+            // 2. 맞은 물체에 IInteractable(상호작용 기능)이 있는지 확인하고 바로 실행!
             if (hit.collider.TryGetComponent(out IInteractable interactable))
             {
-                Debug.Log("IInteractable 인터페이스 확인됨. Interact 실행!"); // 👈 로그 추가
+                Debug.Log("🟢 IInteractable 인터페이스 확인됨. Interact 실행!");
                 interactable.Interact();
             }
             else
             {
-                Debug.Log("맞은 물체에 IInteractable 인터페이스가 없습니다."); // 👈 로그 추가
+                Debug.Log("🔴 맞은 물체에 IInteractable 인터페이스가 없습니다.");
             }
         }
     }

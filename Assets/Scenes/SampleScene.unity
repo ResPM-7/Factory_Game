@@ -1268,7 +1268,7 @@ GameObject:
   - component: {fileID: 91637401}
   - component: {fileID: 91637400}
   - component: {fileID: 91637399}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: HardRock_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7853,7 +7853,7 @@ GameObject:
   - component: {fileID: 585928398}
   - component: {fileID: 585928397}
   - component: {fileID: 585928396}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Tree_04_p1_Spring
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9319,7 +9319,7 @@ GameObject:
   - component: {fileID: 683948912}
   - component: {fileID: 683948911}
   - component: {fileID: 683948910}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: MineralNode_04_C
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10510,7 +10510,7 @@ GameObject:
   - component: {fileID: 729466783}
   - component: {fileID: 729466782}
   - component: {fileID: 729466781}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Tree_04_p2_Spring
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14109,7 +14109,7 @@ GameObject:
   - component: {fileID: 996076308}
   - component: {fileID: 996076307}
   - component: {fileID: 996076306}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: MineralNode_05_C
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -25349,7 +25349,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1731243536}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Tree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -26326,6 +26326,12 @@ MonoBehaviour:
   maxBuildDistance: 15
   useGridSnap: 1
   gridSize: 1
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 3072
+  boxSize: {x: 0.45, y: 0.45, z: 0.45}
+  validColor: {r: 0.007843138, g: 0, b: 1, a: 0.30588236}
+  invalidColor: {r: 1, g: 0, b: 0, a: 0.79607844}
 --- !u!4 &1811448202
 Transform:
   m_ObjectHideFlags: 0
@@ -29720,7 +29726,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2044038310}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: TestObj
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -29991,7 +29997,7 @@ GameObject:
   - component: {fileID: 2055410942}
   - component: {fileID: 2055410941}
   - component: {fileID: 2055410940}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: MineralNode_01_C
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -32661,6 +32667,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Iron
       objectReference: {fileID: 0}
+    - target: {fileID: 6916502849863518684, guid: 60dd1d75e12c4eb42b173c2c2f85b187, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 7210976225548127886, guid: 60dd1d75e12c4eb42b173c2c2f85b187, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.7853498
@@ -33213,7 +33223,7 @@ GameObject:
   - component: {fileID: 3750886437551446419}
   - component: {fileID: 7224867970033954592}
   - component: {fileID: 622495634712380899}
-  m_Layer: 8
+  m_Layer: 11
   m_Name: PlayerArmature
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -34078,6 +34088,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Branch
       objectReference: {fileID: 0}
+    - target: {fileID: 4448170334001285750, guid: 936d1e44485c16c49be7aa4300c64a4e, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 4926419240327741440, guid: 936d1e44485c16c49be7aa4300c64a4e, type: 3}
       propertyPath: m_LocalScale.x
       value: 22.499998
@@ -34701,6 +34715,10 @@ PrefabInstance:
     - target: {fileID: 1095126766015385188, guid: 1434518b0b17b7c43b0aafe2da3fafd8, type: 3}
       propertyPath: m_Name
       value: Cobblestone
+      objectReference: {fileID: 0}
+    - target: {fileID: 1095126766015385188, guid: 1434518b0b17b7c43b0aafe2da3fafd8, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 2070999963648549859, guid: 1434518b0b17b7c43b0aafe2da3fafd8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -38833,6 +38851,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Iron Ingot
       objectReference: {fileID: 0}
+    - target: {fileID: 7932830751090508132, guid: e0f60cf54bf585a44a0e93afc4b488e5, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -40276,6 +40298,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Coal
       objectReference: {fileID: 0}
+    - target: {fileID: 7879030420701293076, guid: 0d310f45277bc3f47876aef6c0db9b03, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -41386,6 +41412,10 @@ PrefabInstance:
     - target: {fileID: 8826773280756810170, guid: 1df9ca170f785d942aecb19407e6f128, type: 3}
       propertyPath: m_Name
       value: Wood
+      objectReference: {fileID: 0}
+    - target: {fileID: 8826773280756810170, guid: 1df9ca170f785d942aecb19407e6f128, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -45522,9 +45552,41 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1705605128}
     m_Modifications:
+    - target: {fileID: 1619761836810683394, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 1619761836810683394, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 1619761836810683394, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 1619761836810683394, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1619761836810683394, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2020073828258873472, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2020073828258873472, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2369358438617526396, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
       propertyPath: m_Name
       value: Ghost_Crafting
+      objectReference: {fileID: 0}
+    - target: {fileID: 2369358438617526396, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 2369358438617526396, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
       propertyPath: m_IsActive
@@ -45569,6 +45631,10 @@ PrefabInstance:
     - target: {fileID: 2588089097836647526, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6225870044967779761, guid: a1818bd49b88a774b8dea4bb1096f671, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -48071,9 +48137,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2044038310}
     m_Modifications:
+    - target: {fileID: 385410302071828663, guid: 16fab7d24d167cc4982b758dcbd860d2, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 523402255274939690, guid: 16fab7d24d167cc4982b758dcbd860d2, type: 3}
       propertyPath: m_Name
       value: Pickaxe
+      objectReference: {fileID: 0}
+    - target: {fileID: 523402255274939690, guid: 16fab7d24d167cc4982b758dcbd860d2, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2259071828544063751, guid: 16fab7d24d167cc4982b758dcbd860d2, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 3833245198013497638, guid: 16fab7d24d167cc4982b758dcbd860d2, type: 3}
       propertyPath: m_LocalPosition.x
@@ -49319,9 +49397,45 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1705605128}
     m_Modifications:
+    - target: {fileID: 5329252625509549389, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5360301485662377770, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 5360301485662377770, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 5360301485662377770, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 5360301485662377770, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5360301485662377770, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5561156588964662225, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5561156588964662225, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6392187988494805543, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
       propertyPath: m_Name
       value: Ghost_Chest
+      objectReference: {fileID: 0}
+    - target: {fileID: 6392187988494805543, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6392187988494805543, guid: 97157a74d0d48894d8b056e44825f98c, type: 3}
       propertyPath: m_IsActive
@@ -53045,7 +53159,7 @@ MonoBehaviour:
   interactDistance: 2.5
   interactLayer:
     serializedVersion: 2
-    m_Bits: 384
+    m_Bits: 1024
   offsetHeight: 1
 --- !u!224 &7245966054824867897
 RectTransform:
