@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5784dc3a77bf16d4ea9cb602e50d5bea, type: 3}
   m_Name: CraftingBox
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemID: CraftingBox
   itemName: "\uC81C\uC791\uB300"
   iconTexture: {fileID: 8400000, guid: 7e1baec873b1b1a41b12ea30eda48218, type: 2}
   maxStackSize: 64

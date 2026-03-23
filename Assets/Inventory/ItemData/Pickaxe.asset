@@ -12,8 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5784dc3a77bf16d4ea9cb602e50d5bea, type: 3}
   m_Name: Pickaxe
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemID: Pickaxe
   itemName: "\uACE1\uAD2D\uC774"
   iconTexture: {fileID: 8400000, guid: 7e467e7fbb15f6d428e12e712b8c829b, type: 2}
   maxStackSize: 1
   prefab: {fileID: 523402255274939690, guid: 16fab7d24d167cc4982b758dcbd860d2, type: 3}
+  isBuildable: 0
+  placeablePrefab: {fileID: 0}
+  ghostObjectName: 
   description: "\uB3C4\uAD6C"

@@ -12,8 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5784dc3a77bf16d4ea9cb602e50d5bea, type: 3}
   m_Name: Cobblestone
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemID: Cobblestone
   itemName: "\uC870\uC57D\uB3CC"
   iconTexture: {fileID: 8400000, guid: 82157ad9f6d7ffc41a60ee766a213b86, type: 2}
   maxStackSize: 64
   prefab: {fileID: 1095126766015385188, guid: 1434518b0b17b7c43b0aafe2da3fafd8, type: 3}
+  isBuildable: 0
+  placeablePrefab: {fileID: 0}
+  ghostObjectName: 
   description: "\uC7AC\uB8CC \uC544\uC774\uD15C"

@@ -12,8 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5784dc3a77bf16d4ea9cb602e50d5bea, type: 3}
   m_Name: Coal
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemID: Coal
   itemName: "\uC11D\uD0C4"
   iconTexture: {fileID: 8400000, guid: 8901ea367d9c1c7428345c12c95f59c2, type: 2}
   maxStackSize: 64
   prefab: {fileID: 7879030420701293076, guid: 0d310f45277bc3f47876aef6c0db9b03, type: 3}
+  isBuildable: 0
+  placeablePrefab: {fileID: 0}
+  ghostObjectName: 
   description: "\uC5F0\uB8CC \uC544\uC774\uD15C"

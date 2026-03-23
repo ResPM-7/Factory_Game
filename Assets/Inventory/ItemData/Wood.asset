@@ -12,8 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5784dc3a77bf16d4ea9cb602e50d5bea, type: 3}
   m_Name: Wood
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemID: Wood
   itemName: "\uB098\uBB34"
   iconTexture: {fileID: 8400000, guid: 6b719ceda17f54f438020d5f042f79f6, type: 2}
   maxStackSize: 64
   prefab: {fileID: 8826773280756810170, guid: 1df9ca170f785d942aecb19407e6f128, type: 3}
+  isBuildable: 0
+  placeablePrefab: {fileID: 0}
+  ghostObjectName: 
   description: "\uC7AC\uB8CC \uC544\uC774\uD15C"
