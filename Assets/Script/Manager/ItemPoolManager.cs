@@ -49,12 +49,12 @@ public class ItemPoolManager : MonoBehaviour
         }
     }
 
-    // 🌟 플레이어가 아이템을 주웠을 때 (ReturnItem)
+    // 플레이어가 아이템을 주웠을 때 (ReturnItem)
     public void ReturnItem(ItemData data, GameObject obj)
     {
         string key = data.itemID;
 
-        // ✨ 안전장치: 에디터에 수작업으로 깔아둔 아이템을 주웠을 때 에러 방지!
+        // 안전장치: 에디터에 수작업으로 깔아둔 아이템을 주웠을 때 에러 방지!
         if (!poolDictionary.ContainsKey(key))
         {
             SetupNewItemType(key);
@@ -86,5 +86,53 @@ public class ItemPoolManager : MonoBehaviour
         }
 
         folderDictionary[key] = existingFolder;
+    }
+
+    public GameObject GetBuilding(ItemData data, Vector3 position, Quaternion rotation)
+    {
+        // 드롭 아이템과 섞이지 않게 폴더 이름 뒤에 "_Building"을 붙여서 깔끔하게 정리합니다!
+        string key = data.itemID + "_Building";
+
+        if (!poolDictionary.ContainsKey(key))
+        {
+            SetupNewItemType(key);
+        }
+
+        if (poolDictionary[key].Count > 0)
+        {
+            GameObject reusedObj = poolDictionary[key].Dequeue();
+            reusedObj.transform.position = position;
+            reusedObj.transform.rotation = rotation;
+            reusedObj.SetActive(true);
+            return reusedObj;
+        }
+        else
+        {
+            // 💡 핵심: data.prefab이 아니라 건축용인 data.placeablePrefab을 생성합니다!
+            GameObject newObj = Instantiate(data.placeablePrefab, position, rotation);
+            newObj.name = key; // (Clone) 글자 제거
+
+            if (folderDictionary.ContainsKey(key))
+                newObj.transform.SetParent(folderDictionary[key]);
+
+            return newObj;
+        }
+    }
+
+    // 🌟 2. 나중에 건축물을 부수고 회수할 때 부르는 함수 (ReturnBuilding)
+    public void ReturnBuilding(ItemData data, GameObject obj)
+    {
+        string key = data.itemID + "_Building";
+
+        if (!poolDictionary.ContainsKey(key))
+        {
+            SetupNewItemType(key);
+        }
+
+        if (folderDictionary.ContainsKey(key))
+            obj.transform.SetParent(folderDictionary[key]);
+
+        obj.SetActive(false);
+        poolDictionary[key].Enqueue(obj);
     }
 }

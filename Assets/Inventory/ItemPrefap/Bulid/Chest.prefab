@@ -153,7 +153,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3784749002311544297}
   m_Layer: 10
-  m_Name: Pivot_Chest
+  m_Name: Chest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

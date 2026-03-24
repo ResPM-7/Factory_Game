@@ -71,15 +71,24 @@ public class BuildManager : MonoBehaviour
                 _lastGhostPosition = targetPosition;
             }
 
-            // ✨ 1. 겹침 검사 (가상의 박스를 만들어서 장애물이 있는지 확인)
+            // 1. 겹침 검사 (가상의 박스를 만들어서 장애물이 있는지 확인)
             // 중심점을 땅바닥에서 박스 높이만큼 위로 살짝 올려서 검사합니다.
             Vector3 checkCenter = targetPosition + Vector3.up * boxSize.y;
             Collider[] colliders = Physics.OverlapBox(checkCenter, boxSize, ghostRoot.transform.rotation, obstacleLayer);
 
-            // 겹친 물체가 하나도 없으면(0) 설치 가능!
+            // 겹친 물체가 하나도 없으면(0) 일단 설치 가능!
             _canBuild = (colliders.Length == 0);
 
-            // ✨ 2. 색상 변경 (가능하면 파랑, 불가능하면 빨강)
+            // ✨ (추가된 코드) 2. 거점 필수 건물인데, 거점 밖이라면 설치 불가 처리!
+            if (_canBuild && currentBlueprintData.requireBaseCamp)
+            {
+                if (!IsInsideBaseCamp(targetPosition))
+                {
+                    _canBuild = false; // 다른 거랑 안 겹쳤더라도 거점 밖이라서 빨간색으로 만듦!
+                }
+            }
+
+            // (기존 코드) 3. 색상 변경 (가능하면 파랑, 불가능하면 빨강)
             Color targetColor = _canBuild ? validColor : invalidColor;
             foreach (var rend in _ghostRenderers)
             {
@@ -143,7 +152,9 @@ public class BuildManager : MonoBehaviour
 
     private void PlaceBuilding(Vector3 position)
     {
-        Instantiate(currentBlueprintData.placeablePrefab, position, ghostRoot.transform.rotation);
+        // 풀 매니저에게 건물을 지어달라고 요청합니다!
+        ItemPoolManager.Instance.GetBuilding(currentBlueprintData, position, ghostRoot.transform.rotation);
+
         InventoryManager.Instance.RemoveItem(currentBlueprintData, 1);
 
         if (InventoryManager.Instance.GetItemCount(currentBlueprintData) <= 0)
@@ -157,5 +168,23 @@ public class BuildManager : MonoBehaviour
         isBuildingMode = false;
         currentBlueprintData = null;
         if (ghostRoot != null) ghostRoot.SetActive(false);
+    }
+
+    private bool IsInsideBaseCamp(Vector3 position)
+    {
+        // 설치된 모든 거점들을 쭉 뒤져서 거리를 잽니다.
+        foreach (BaseCamp camp in BaseCamp.activeBaseCamps)
+        {
+            float distance = Vector3.Distance(position, camp.transform.position);
+
+            // 하나라도 50m(buildRadius) 이내에 있다면 true(거점 안) 반환!
+            if (distance <= camp.buildRadius)
+            {
+                return true;
+            }
+        }
+
+        // 다 뒤졌는데 없으면 거점 밖입니다.
+        return false;
     }
 }

@@ -20,4 +20,5 @@ MonoBehaviour:
   isBuildable: 0
   placeablePrefab: {fileID: 0}
   ghostObjectName: 
+  requireBaseCamp: 0
   description: "\uC6D0\uC11D \uC7AC\uB8CC"

@@ -16,10 +16,10 @@ public class ItemData : ScriptableObject
     [Header("건축(Blueprint) 설정")]
     public bool isBuildable;
     public GameObject placeablePrefab; // 진짜 생성될 건물
-
-    // ✨ [수정됨] 프리팹 대신 하이어라키에 있는 '고스트 오브젝트 이름'을 적습니다.
-    // 예: "Box_Ghost", "Workbench_Ghost"
     public string ghostObjectName;
+    //새로 추가된 기능: 체크하면 무조건 거점 안에만 지을 수 있습니다!
+    public bool requireBaseCamp = true;
+
 
     [TextArea] public string description; // 아이템 설명
 

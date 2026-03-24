@@ -20,4 +20,5 @@ MonoBehaviour:
   isBuildable: 1
   placeablePrefab: {fileID: 8651016744789823868, guid: 92d2f16c8bae2d1478c253b38c85b6ad, type: 3}
   ghostObjectName: Ghost_Chest
+  requireBaseCamp: 1
   description: "\uBE4C\uB4DC \uC544\uC774\uD15C"
