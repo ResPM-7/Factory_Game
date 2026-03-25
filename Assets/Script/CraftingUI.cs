@@ -25,6 +25,15 @@ public class CraftingUI : MonoBehaviour, IUIPanel
     public Text buttonText;
     public Button craftButton;
 
+    [Header("수량 조절 UI")]
+    public Slider quantitySlider;
+    public Button plusButton;
+    public Button minusButton;
+    public Text quantityText;
+
+    private int _currentCraftCount = 1;
+    private int _maxCraftCount = 1;
+
     [Header("레시피 설정")]
     public GameObject recipeButtonPrefab;
     public Transform recipeParent;
@@ -38,78 +47,145 @@ public class CraftingUI : MonoBehaviour, IUIPanel
         foreach (var slot in ingredientSlots) slot.gameObject.SetActive(false);
         SetIconAlpha(0);
 
-        // 매니저에 등록된 레시피 목록을 가져와서 UI 버튼을 만듭니다.
         if (CraftingManager.Instance != null)
         {
             GenerateRecipeButtons(CraftingManager.Instance.allRecipes);
         }
 
-        SetCraftingUIState(false);
+        if (!_isCraftingUIOpen) SetCraftingUIState(false);
+
+        if (quantitySlider != null)
+        {
+            quantitySlider.onValueChanged.AddListener(OnSliderValueChanged);
+        }
     }
 
     void Update()
     {
-        if (uiPanel.activeSelf && _targetStation != null)
+        if (uiPanel.activeSelf && _targetStation != null && _selectedRecipe != null)
         {
-            // 제작대에서 진행 중인 시간을 UI에 갱신
             if (_targetStation.isCrafting)
             {
-                float duration = _targetStation.currentRecipe.craftTime;
-                float elapsed = _targetStation.elapsedTime;
+                if (craftSlider != null)
+                {
+                    craftSlider.maxValue = _targetStation.currentRecipe.craftTime;
+                    craftSlider.value = _targetStation.elapsedTime;
+                }
 
-                if (craftSlider != null) craftSlider.value = elapsed;
-                if (buttonText != null) buttonText.text = $"{(duration - elapsed):F1}s";
-            }
-            // 제작이 막 끝났을 때
-            else if (_targetStation.isFinished && craftButton.interactable == false)
-            {
-                if (craftSlider != null) craftSlider.value = _targetStation.currentRecipe.craftTime;
-                if (buttonText != null) buttonText.text = "COLLECT";
+                if (buttonText != null) buttonText.text = "취소";
                 craftButton.interactable = true;
+
+                if (resultNameText != null)
+                    resultNameText.text = $"{_selectedRecipe.resultItem.itemName} ({_targetStation.completedCount} / {_targetStation.targetCraftCount})";
+            }
+            else if (_targetStation.isFinished)
+            {
+                if (craftSlider != null)
+                {
+                    craftSlider.maxValue = 1;
+                    craftSlider.value = 1;
+                }
+                if (buttonText != null) buttonText.text = "수령";
+                craftButton.interactable = true;
+
+                if (resultNameText != null)
+                    resultNameText.text = $"{_selectedRecipe.resultItem.itemName} ({_targetStation.completedCount}개 완성)";
             }
         }
     }
 
+    public void OnPlusButtonClicked()
+    {
+        if (_currentCraftCount < _maxCraftCount) UpdateQuantity(_currentCraftCount + 1);
+    }
+
+    public void OnMinusButtonClicked()
+    {
+        if (_currentCraftCount > 1) UpdateQuantity(_currentCraftCount - 1);
+    }
+
+    private void OnSliderValueChanged(float value)
+    {
+        UpdateQuantity(Mathf.RoundToInt(value));
+    }
+
+    private void UpdateQuantity(int count)
+    {
+        _currentCraftCount = Mathf.Clamp(count, 1, Mathf.Max(1, _maxCraftCount));
+
+        if (quantityText != null) quantityText.text = _currentCraftCount.ToString();
+        if (quantitySlider != null) quantitySlider.SetValueWithoutNotify(_currentCraftCount);
+
+        UpdateIngredientsUI();
+        CheckCanCraft();
+    }
+
     public void SetCraftingUIState(bool isOpen)
     {
+        if (isOpen && !gameObject.activeSelf) gameObject.SetActive(true);
+
         _isCraftingUIOpen = isOpen;
         if (uiPanel != null) uiPanel.SetActive(isOpen);
-
         if (!isOpen) ResetStateUI();
-
         if (UIManager.Instance != null) UIManager.Instance.UpdateInputState();
     }
 
     public void OpenCraftingUI(CraftingStation station = null)
     {
-        _targetStation = station;
-        SetCraftingUIState(true);
-
-        // 제작창 열 때 인벤토리도 자동으로 같이 열기
         if (InventoryManager.Instance != null && !InventoryManager.Instance.inventoryUI.activeSelf)
         {
             InventoryManager.Instance.SetInventoryState(true);
         }
 
-        if (_targetStation != null && _targetStation.currentRecipe != null)
-        {
-            SelectRecipe(_targetStation.currentRecipe);
+        _targetStation = station;
+        SetCraftingUIState(true);
 
-            if (_targetStation.isFinished)
+        if (_targetStation != null)
+        {
+            if (_targetStation.currentRecipe != null)
             {
-                if (craftSlider != null) craftSlider.value = _targetStation.currentRecipe.craftTime;
-                if (buttonText != null) buttonText.text = "COLLECT";
-                if (craftButton != null) craftButton.interactable = true;
+                // ✨ 1. 제작대가 이미 일하고 있을 때 (강제로 레시피 띄움)
+                SelectRecipe(_targetStation.currentRecipe, forceUpdate: true);
+
+                if (_targetStation.isFinished)
+                {
+                    if (craftSlider != null) { craftSlider.maxValue = 1; craftSlider.value = 1; }
+                    if (buttonText != null) buttonText.text = "수령";
+                    if (craftButton != null) craftButton.interactable = true;
+                    ToggleQuantityUI(false);
+                }
+                else if (_targetStation.isCrafting)
+                {
+                    if (craftButton != null) craftButton.interactable = false;
+                    ToggleQuantityUI(false);
+                }
             }
-            else if (_targetStation.isCrafting)
+            else
             {
-                if (craftButton != null) craftButton.interactable = false;
+                // ✨ 2. 아무것도 안 하는 '새 제작대'를 열었을 때!
+                if (_selectedRecipe != null)
+                {
+                    // 이전에 보던 레시피가 있으면 잠금을 풀고 바로 띄워줍니다!
+                    SelectRecipe(_selectedRecipe, forceUpdate: true);
+                }
+                else
+                {
+                    ResetStateUI();
+                    ToggleQuantityUI(false);
+                }
             }
         }
         else
         {
             ResetStateUI();
         }
+    }
+
+    private void ToggleQuantityUI(bool isOn)
+    {
+        if (plusButton != null) plusButton.interactable = isOn;
+        if (minusButton != null) minusButton.interactable = isOn;
+        if (quantitySlider != null) quantitySlider.interactable = isOn;
     }
 
     private void SetIconAlpha(float alpha)
@@ -132,17 +208,30 @@ public class CraftingUI : MonoBehaviour, IUIPanel
         }
     }
 
-    public void SelectRecipe(CraftingRecipe recipe)
+    // ✨ [수정됨] 매개변수에 forceUpdate가 추가되었습니다. 
+    // 시스템이 자동으로 띄울 때는 잠금을 무시하고 화면을 세팅합니다!
+    public void SelectRecipe(CraftingRecipe recipe, bool forceUpdate = false)
     {
-        if (_targetStation != null && (_targetStation.isCrafting || _targetStation.isFinished)) return;
+        // 강제 업데이트가 아닌데(유저가 클릭했는데), 제작대가 일하고 있으면 변경 불가
+        if (!forceUpdate && _targetStation != null && (_targetStation.isCrafting || _targetStation.isFinished)) return;
 
         _selectedRecipe = recipe;
 
         if (resultPreviewIcon != null) resultPreviewIcon.texture = recipe.resultItem.iconTexture;
         if (resultNameText != null) resultNameText.text = recipe.resultItem.itemName;
-
         SetIconAlpha(1);
-        UpdateIngredientsUI();
+
+        Vector3 craftPos = _targetStation != null ? _targetStation.transform.position : Vector3.zero;
+        _maxCraftCount = CraftingManager.Instance.GetMaxCraftableCount(_selectedRecipe, craftPos);
+
+        if (quantitySlider != null)
+        {
+            quantitySlider.minValue = 1;
+            quantitySlider.maxValue = Mathf.Max(1, _maxCraftCount);
+        }
+
+        ToggleQuantityUI(true); // ✨ 잠금 해제!
+        UpdateQuantity(1);      // ✨ 1개로 초기화 및 버튼 재활성화!
         ResetStateUI();
     }
 
@@ -151,13 +240,16 @@ public class CraftingUI : MonoBehaviour, IUIPanel
         if (_selectedRecipe == null) return;
 
         int requiredCount = _selectedRecipe.ingredients.Count;
+        Vector3 craftPos = _targetStation != null ? _targetStation.transform.position : Vector3.zero;
 
         for (int i = 0; i < ingredientSlots.Length; i++)
         {
             if (i < requiredCount)
             {
                 ingredientSlots[i].gameObject.SetActive(true);
-                ingredientSlots[i].Setup(_selectedRecipe.ingredients[i]);
+                int totalAvailable = CraftingManager.Instance.GetTotalAvailableItem(_selectedRecipe.ingredients[i].item, craftPos);
+                int requiredTotal = _selectedRecipe.ingredients[i].amount * _currentCraftCount;
+                ingredientSlots[i].Setup(_selectedRecipe.ingredients[i], totalAvailable, requiredTotal);
             }
             else
             {
@@ -174,29 +266,32 @@ public class CraftingUI : MonoBehaviour, IUIPanel
         {
             CollectItem();
         }
-        // ✨ 여기서 계산 로직을 CraftingManager에게 맡깁니다!
-        else if (!_targetStation.isCrafting && CraftingManager.Instance.CanCraft(_selectedRecipe, 1))
+        else if (_targetStation.isCrafting)
         {
-            // 재료 소모도 Manager가 합니다.
-            CraftingManager.Instance.ConsumeIngredients(_selectedRecipe, 1);
+            _targetStation.CancelCrafting();
+            ToggleQuantityUI(true); // 취소했으니 다시 UI 잠금 해제
+            UpdateQuantity(1);      // 수량 1개로 초기화
+        }
+        else if (!_targetStation.isCrafting && CraftingManager.Instance.CanCraft(_selectedRecipe, _targetStation.transform.position, _currentCraftCount))
+        {
+            CraftingManager.Instance.ConsumeIngredients(_selectedRecipe, _targetStation.transform.position, _currentCraftCount);
             UpdateIngredientsUI();
 
-            _targetStation.StartCrafting(_selectedRecipe);
-
-            if (craftSlider != null) craftSlider.maxValue = _selectedRecipe.craftTime;
-            craftButton.interactable = false;
+            _targetStation.StartCrafting(_selectedRecipe, _currentCraftCount);
+            ToggleQuantityUI(false);
         }
     }
 
     void CollectItem()
     {
-        // ✨ 수령 로직도 Manager를 통해 시도합니다.
-        bool added = CraftingManager.Instance.TryCollectItem(_targetStation.currentRecipe.resultItem, _targetStation.currentRecipe.resultAmount);
+        int totalAmountToGive = _targetStation.currentRecipe.resultAmount * _targetStation.completedCount;
+
+        bool added = CraftingManager.Instance.TryCollectItem(_targetStation.currentRecipe.resultItem, totalAmountToGive);
 
         if (added)
         {
             _targetStation.Collect();
-            ResetStateUI();
+            SelectRecipe(_selectedRecipe, forceUpdate: true); // 수령 후 UI 즉시 초기화
         }
         else
         {
@@ -208,6 +303,7 @@ public class CraftingUI : MonoBehaviour, IUIPanel
     private void ResetStateUI()
     {
         if (craftSlider != null) craftSlider.value = 0;
+        if (resultNameText != null && _selectedRecipe != null) resultNameText.text = _selectedRecipe.resultItem.itemName;
         CheckCanCraft();
     }
 
@@ -215,14 +311,14 @@ public class CraftingUI : MonoBehaviour, IUIPanel
     {
         if (_selectedRecipe == null) return;
 
-        // 버튼을 켤지 말지도 Manager에게 물어보고 결정합니다.
-        bool hasIngredients = CraftingManager.Instance.CanCraft(_selectedRecipe, 1);
+        Vector3 craftPos = _targetStation != null ? _targetStation.transform.position : Vector3.zero;
+        bool hasIngredients = CraftingManager.Instance.CanCraft(_selectedRecipe, craftPos, _currentCraftCount);
 
-        if (craftButton != null)
+        if (craftButton != null && _targetStation != null && !_targetStation.isCrafting && !_targetStation.isFinished)
         {
             craftButton.interactable = hasIngredients;
             if (buttonText != null)
-                buttonText.text = hasIngredients ? "CRAFT" : "재료부족";
+                buttonText.text = hasIngredients ? "제작" : "재료 부족";
         }
     }
 

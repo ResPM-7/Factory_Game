@@ -6,7 +6,7 @@ public class StorageUI : MonoBehaviour, IUIPanel
     public static StorageUI Instance;
     public GameObject uiPanel;
     public InventorySlot[] storageSlots;
-    private Storage _currentStorage;
+    private StorageChest _currentStorage;
 
     void Awake() => Instance = this;
 
@@ -21,7 +21,7 @@ public class StorageUI : MonoBehaviour, IUIPanel
         _currentStorage = null;
     }
 
-    public void OpenStorage(Storage storage)
+    public void OpenStorage(StorageChest storage)
     {
         _currentStorage = storage;
         uiPanel.SetActive(true);

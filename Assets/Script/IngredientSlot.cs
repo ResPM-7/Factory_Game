@@ -7,33 +7,28 @@ public class IngredientSlot : MonoBehaviour
     public RawImage icon;
     public Text stackText;
 
-    // ✨ 오브젝트가 처음 로드될 때 투명하게 초기화
     private void Awake()
     {
         SetAlpha(0);
     }
 
-    public void Setup(CraftingRecipe.Ingredient ing)
+    // ✨ [수정] 제작 개수에 비례한 '총 필요량(requiredTotal)'을 같이 받습니다!
+    public void Setup(CraftingRecipe.Ingredient ing, int totalAvailable, int requiredTotal)
     {
-        // 1. 아이콘 설정 및 불투명하게(1) 변경
         if (icon != null)
         {
             icon.texture = ing.item.iconTexture;
             SetAlpha(1);
         }
 
-        // 2. 가방에서 아이템 개수 가져오기
-        int myCount = InventoryManager.Instance.GetItemCount(ing.item);
-
-        // 3. 텍스트 설정
         if (stackText != null)
         {
-            stackText.text = $"{myCount}/{ing.amount}";
-            stackText.color = (myCount >= ing.amount) ? Color.white : Color.red;
+            // 예: "가진개수 / 총필요한개수"
+            stackText.text = $"{totalAvailable}/{requiredTotal}";
+            stackText.color = (totalAvailable >= requiredTotal) ? Color.white : Color.red;
         }
     }
 
-    // ✨ 투명도 조절용 내부 함수
     private void SetAlpha(float alpha)
     {
         if (icon != null)
