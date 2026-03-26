@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
 
 public class BuildManager : MonoBehaviour
 {
@@ -39,6 +40,10 @@ public class BuildManager : MonoBehaviour
 
     void Update()
     {
+        if (EventSystem.current.IsPointerOverGameObject())
+        {
+            return; // 마우스가 UI 위에 있다면 아래 건축 로직을 실행하지 않고 즉시 취소!
+        }
         if (!isBuildingMode || currentBlueprintData == null || ghostRoot == null) return;
 
         var mouse = Mouse.current;

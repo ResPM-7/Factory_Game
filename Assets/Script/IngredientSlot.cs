@@ -12,7 +12,7 @@ public class IngredientSlot : MonoBehaviour
         SetAlpha(0);
     }
 
-    // ✨ [수정] 제작 개수에 비례한 '총 필요량(requiredTotal)'을 같이 받습니다!
+    //제작 개수에 비례한 '총 필요량(requiredTotal)'을 같이 받습니다!
     public void Setup(CraftingRecipe.Ingredient ing, int totalAvailable, int requiredTotal)
     {
         if (icon != null)
