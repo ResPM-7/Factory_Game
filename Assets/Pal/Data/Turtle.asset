@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57d99cae971525548a200c756a82a728, type: 3}
+  m_Name: Turtle
+  m_EditorClassIdentifier: Assembly-CSharp::PalData
+  palID: Turtle
+  palName: "\uAC70\uBD81\uC774"
+  palPrefab: {fileID: 4517330730653818262, guid: fc6a3b95ddbf86746a2911cb98ae361f, type: 3}
+  palIcon: {fileID: 8400000, guid: 30bbcf915c0eac742bda867c20d4b5d8, type: 2}
+  workSuitabilities:
+  - workType: 2
+    level: 2
+  - workType: 3
+    level: 1
