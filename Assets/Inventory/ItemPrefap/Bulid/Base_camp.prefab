@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 2343057456372871118}
   - component: {fileID: 5630035439868397706}
   - component: {fileID: 4828131572165508772}
+  - component: {fileID: 2715997537857365281}
   - component: {fileID: 8665105362391268201}
   - component: {fileID: 8330855709190062584}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -113,8 +114,21 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1.6563399, z: 1}
-  m_Center: {x: 0, y: 0.32816958, z: 0}
+  m_Size: {x: 1, y: 2.374422, z: 1}
+  m_Center: {x: 0, y: 0.6872112, z: 0}
+--- !u!114 &2715997537857365281
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8879375703980464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0796d405fba981b479a97047ab4f1c51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChooseEntity
+  entityType: 2
 --- !u!114 &8665105362391268201
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,7 +265,7 @@ GameObject:
   - component: {fileID: 7643115589922799130}
   - component: {fileID: 8462101680538468956}
   - component: {fileID: 1560490210198121684}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -430,7 +444,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2447778150949758393}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Base_camp
   m_TagString: Untagged
   m_Icon: {fileID: 0}

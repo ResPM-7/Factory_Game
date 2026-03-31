@@ -15,6 +15,8 @@ public class UIManager : MonoBehaviour
     private StarterAssetsInputs _playerInputs;
     private CinemachineInputAxisController _cameraController;
 
+    private bool _wasAnyUIOpen = false;
+
     void Awake()
     {
         if (Instance == null) Instance = this;
@@ -29,6 +31,18 @@ public class UIManager : MonoBehaviour
         _cameraController = Object.FindAnyObjectByType<CinemachineInputAxisController>();
     }
 
+    void Update()
+    {
+        bool isCurrentlyOpen = IsAnyUIOpen();
+
+        // UI 상태가 '꺼짐 -> 켜짐' 또는 '켜짐 -> 꺼짐'으로 방금 변했다면?
+        if (isCurrentlyOpen != _wasAnyUIOpen)
+        {
+            _wasAnyUIOpen = isCurrentlyOpen; // 상태 업데이트
+            UpdateInputState();              // 즉시 플레이어 조작 상태 변경!
+        }
+    }
+
     public bool IsAnyUIOpen()
     {
         foreach (GameObject panel in allUIPanels)
@@ -41,24 +55,20 @@ public class UIManager : MonoBehaviour
         return false; // 모두 꺼져 있으면 false 반환
     }
 
-    // ✨ 지웅 님이 원하던 "어떤 UI든 닫아주는" 만능 함수
     public void CloseAllMenus()
     {
         foreach (GameObject panel in allUIPanels)
         {
             if (panel != null && panel.activeSelf)
             {
-                // 패널 오브젝트나 그 부모에 있는 IUIPanel 인터페이스를 찾습니다.
                 IUIPanel uiManager = panel.GetComponentInParent<IUIPanel>();
 
                 if (uiManager != null)
                 {
-                    // 인터페이스가 존재하면 각 UI의 고유 닫기 로직을 실행합니다.
                     uiManager.CloseUI();
                 }
                 else
                 {
-                    // 인터페이스가 없는 단순 UI라면 패널만 비활성화합니다.
                     panel.SetActive(false);
                 }
             }
@@ -68,7 +78,7 @@ public class UIManager : MonoBehaviour
         RestorePlayerControl();
     }
 
-    // 캐릭터 조작을 원래대로 돌리는 로직을 별도 함수로 분리
+    // 캐릭터 조작을 원래대로 돌리는 로직
     public void RestorePlayerControl()
     {
         if (_playerInput == null) return;
@@ -92,23 +102,22 @@ public class UIManager : MonoBehaviour
 
     public void UpdateInputState()
     {
-        // IsAnyUIOpen()은 allUIPanels 리스트를 알아서 뒤져서 하나라도 켜져있는지 확인해 줍니다.
         if (IsAnyUIOpen())
         {
-            // UI가 하나라도 켜져 있다면 -> UI 조작 모드 (마우스 등장)
             if (_playerInput != null) _playerInput.SwitchCurrentActionMap("UI");
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             if (_cameraController != null) _cameraController.enabled = false;
+
+            if (_playerInputs != null)
+            {
+                _playerInputs.move = Vector2.zero;
+                _playerInputs.look = Vector2.zero;
+            }
         }
         else
         {
-            // UI가 모두 꺼져 있다면 -> 플레이어 조작 모드 (마우스 숨김)
-            if (_playerInput != null) _playerInput.SwitchCurrentActionMap("Player");
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            if (_cameraController != null) _cameraController.enabled = true;
+            RestorePlayerControl();
         }
     }
-
 }

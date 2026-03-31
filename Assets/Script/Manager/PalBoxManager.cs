@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-
 public class PalBoxManager : MonoBehaviour
 {
     public static PalBoxManager Instance;
@@ -10,6 +9,7 @@ public class PalBoxManager : MonoBehaviour
     public int maxCapacity = 40; // 스크린샷을 보니 8칸 x 5줄 = 40칸이네요!
 
     [Header("UI 연결")]
+    public GameObject palBoxUI;
     public PalSlot[] palSlots; // 스크린샷에 있는 40개의 슬롯들을 여기에 연결합니다.
 
     private void Awake()
@@ -68,5 +68,31 @@ public class PalBoxManager : MonoBehaviour
         Debug.Log($"<color=yellow>[팰 선택]</color> {clickedPal.palName}을(를) 클릭했습니다! (여기에 거점 배치 로직 추가 예정)");
 
         // TODO: 클릭한 팰을 거점에 소환하는 코드 작성
+    }
+
+    public void TogglePalBoxUI()
+    {
+        if (palBoxUI == null)
+        {
+            Debug.LogError("UI 패널이 연결되지 않았습니다! 인스펙터를 확인해주세요.");
+            return;
+        }
+
+        // 현재 켜져있으면 끄고, 꺼져있으면 켭니다.
+        bool isCurrentlyActive = palBoxUI.activeSelf;
+        palBoxUI.SetActive(!isCurrentlyActive);
+
+        // UI 상태에 따라 마우스 커서 조절 및 데이터 갱신
+        if (palBoxUI.activeSelf)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            UpdateUI();
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 }

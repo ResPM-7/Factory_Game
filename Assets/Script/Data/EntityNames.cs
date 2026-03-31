@@ -3,7 +3,8 @@ using UnityEngine;
 public enum EntityNames
 {
     Chest,
-    Crafting
+    Crafting,
+    MonsterBox
 }
 
 public class ChooseEntity : MonoBehaviour

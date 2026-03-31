@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(LineRenderer))]
-public class BaseCamp : MonoBehaviour
+public class BaseCamp : MonoBehaviour, IInteractable
 {
     public static List<BaseCamp> activeBaseCamps = new List<BaseCamp>();
 
@@ -55,6 +55,23 @@ public class BaseCamp : MonoBehaviour
             line.SetPosition(i, new Vector3(x, 0.2f, z));
 
             angle += (360f / segments);
+        }
+    }
+
+    public void Interact()
+    {
+        // 내 몸에 붙어있는 ChooseEntity 스크립트를 가져와서
+        Debug.Log("★ Interact 함수가 호출되었습니다! ★"); // 이 로그가 찍히는지 확인
+        ChooseEntity myEntity = GetComponent<ChooseEntity>();
+
+        // 그게 무슨 타입인지 확인하고 작동시킵니다.
+        if (myEntity != null && myEntity.entityType == EntityNames.MonsterBox)
+        {
+            Debug.Log("몬스터 박스 상호작용!");
+            if (PalBoxManager.Instance != null)
+            {
+                PalBoxManager.Instance.TogglePalBoxUI();
+            }
         }
     }
 }

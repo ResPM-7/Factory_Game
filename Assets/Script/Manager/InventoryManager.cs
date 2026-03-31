@@ -1,7 +1,5 @@
-﻿using StarterAssets;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
-using Unity.Cinemachine;
 using UnityEngine.UI;
 
 public class InventoryManager : MonoBehaviour, IUIPanel
@@ -19,9 +17,6 @@ public class InventoryManager : MonoBehaviour, IUIPanel
     public RawImage dragIcon;
     public Text dragAmountText;
 
-    private StarterAssetsInputs _playerInputs;
-    private PlayerInput _playerInputComponent;
-    private CinemachineInputAxisController _cameraInputController;
     private bool isInventoryOpen = false;
 
     // ✨ 클릭 이동을 위한 핵심 변수: 현재 선택된(들고 있는) 슬롯
@@ -31,22 +26,19 @@ public class InventoryManager : MonoBehaviour, IUIPanel
 
     void Start()
     {
-        _playerInputs = Object.FindAnyObjectByType<StarterAssetsInputs>();
-        _playerInputComponent = Object.FindAnyObjectByType<PlayerInput>();
-        _cameraInputController = Object.FindAnyObjectByType<CinemachineInputAxisController>();
+        // ✨ 불필요해진 카메라/플레이어 컨트롤러 찾기 코드 싹 삭제!
 
         // 초기 상태 설정
         isInventoryOpen = false;
         if (inventoryUI != null) inventoryUI.SetActive(false);
-        SetCursorState(false);
     }
 
     void Update()
     {
+        // I키로 인벤토리 열고 닫기 (이제 UIManager 눈치 안 보고 내 창만 껐다 켭니다!)
         if (Keyboard.current != null && Keyboard.current.iKey.wasPressedThisFrame)
         {
             SetInventoryState(!inventoryUI.activeSelf);
-            if (UIManager.Instance != null) UIManager.Instance.UpdateInputState();
         }
 
         if (Keyboard.current != null && Keyboard.current.f12Key.wasPressedThisFrame)
@@ -54,7 +46,7 @@ public class InventoryManager : MonoBehaviour, IUIPanel
             ToggleCraftingUI();
         }
 
-        // ✨ [추가된 부분] 아이템을 들고(선택하고) 있을 때 G 키를 누르면 바닥에 버립니다.
+        // 아이템을 들고(선택하고) 있을 때 G 키를 누르면 바닥에 버립니다.
         if (_selectedSlot != null && Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame)
         {
             DropSelectedItem();
@@ -105,7 +97,7 @@ public class InventoryManager : MonoBehaviour, IUIPanel
 
         Debug.Log($"{itemToDrop.itemName}을(를) 플레이어 앞에 버렸습니다.");
 
-        // ✨ 버린 후 슬롯을 비우고 선택 상태를 해제합니다.
+        // 버린 후 슬롯을 비우고 선택 상태를 해제합니다.
         _selectedSlot.ClearSlot();
         ClearSelection();
     }
@@ -114,28 +106,25 @@ public class InventoryManager : MonoBehaviour, IUIPanel
     {
         if (CraftingUI.Instance == null) return;
 
-        // 현재 제작창이 켜져 있는지 확인
         bool isCurrentlyOpen = CraftingUI.Instance.uiPanel.activeSelf;
 
         if (isCurrentlyOpen)
         {
-            // 켜져 있다면? UIManager를 통해 안전하게 닫기 (조작 복구 포함)
-            UIManager.Instance.CloseAllMenus();
+            if (UIManager.Instance != null) UIManager.Instance.CloseAllMenus();
         }
         else
         {
-            // 꺼져 있다면? 제작창 열기
             CraftingUI.Instance.OpenCraftingUI();
         }
     }
-    // OpenInventory 함수가 없다면 이것도 추가해주세요.
+
     public void OpenInventory()
     {
         isInventoryOpen = true;
         if (inventoryUI != null)
         {
             inventoryUI.SetActive(true);
-            UpdateInputState(); // 마우스 커서 활성화 및 조작 차단
+            // ✨ UpdateInputState(); 삭제됨 (UIManager가 알아서 함)
         }
     }
 
@@ -153,7 +142,6 @@ public class InventoryManager : MonoBehaviour, IUIPanel
             {
                 dragObject.SetActive(true);
 
-                // 마우스 아이콘 이미지 세팅 및 불투명하게 만들기
                 if (dragIcon != null && _selectedSlot.item.iconTexture != null)
                 {
                     dragIcon.texture = _selectedSlot.item.iconTexture;
@@ -164,14 +152,12 @@ public class InventoryManager : MonoBehaviour, IUIPanel
                     dragIcon.color = dragColor;
                 }
 
-                // 텍스트 활성화 및 개수 표시
                 if (dragAmountText != null)
                 {
                     dragAmountText.enabled = true;
                     dragAmountText.text = _selectedSlot.amount > 1 ? _selectedSlot.amount.ToString() : "";
                 }
 
-                // ✨ [수정 1] 인벤토리 슬롯에 있는 원래 그림과 텍스트를 "완전히 안 보이게" 끕니다.
                 if (_selectedSlot.iconRawImage != null)
                 {
                     _selectedSlot.iconRawImage.enabled = false;
@@ -201,34 +187,27 @@ public class InventoryManager : MonoBehaviour, IUIPanel
     {
         if (_selectedSlot != null)
         {
-            // ✨ [핵심 추가 2] 중요! 아이템을 내려놓거나 병합했으니,
-            // 원래 슬롯의 UI를 다시 켜줍니다. (남은 개수만큼 다시 그려짐)
             _selectedSlot.UpdateSlotUI();
-
-            _selectedSlot.HighlightSlot(false); // 테두리 끄기
+            _selectedSlot.HighlightSlot(false);
             _selectedSlot = null;
         }
 
-        // 마우스 아이콘 끄기
         if (dragObject != null)
         {
             dragObject.SetActive(false);
         }
     }
 
-    // ✨ [추가] 만능 아이템 이동/병합/스왑 함수
     private void MoveOrMergeItem(InventorySlot sourceSlot, InventorySlot targetSlot)
     {
         if (sourceSlot.item == null) return;
 
-        // 1. 도착지가 [빈 슬롯]인 경우 -> 그대로 이동
         if (targetSlot.item == null)
         {
             targetSlot.item = sourceSlot.item;
             targetSlot.amount = sourceSlot.amount;
-            sourceSlot.ClearSlot(); // 원래 자리는 비워줌
+            sourceSlot.ClearSlot();
         }
-        // 2. 도착지에 [같은 아이템]이 있는 경우 -> 병합(Merge)
         else if (targetSlot.item == sourceSlot.item)
         {
             int maxStack = targetSlot.item.maxStackSize;
@@ -238,12 +217,11 @@ public class InventoryManager : MonoBehaviour, IUIPanel
             {
                 int amountToMove = Mathf.Min(spaceLeft, sourceSlot.amount);
                 targetSlot.amount += amountToMove;
-                sourceSlot.amount -= amountToMove; // 남은 건 알아서 제자리에!
+                sourceSlot.amount -= amountToMove;
 
                 if (sourceSlot.amount <= 0) sourceSlot.ClearSlot();
             }
         }
-        // 3. 도착지에 [다른 아이템]이 있는 경우 -> 맞바꾸기(Swap)
         else
         {
             ItemData tempItem = targetSlot.item;
@@ -256,12 +234,10 @@ public class InventoryManager : MonoBehaviour, IUIPanel
             sourceSlot.amount = tempAmount;
         }
 
-        // 4. 두 슬롯의 그림과 텍스트 새로고침
         sourceSlot.UpdateSlotUI();
         targetSlot.UpdateSlotUI();
     }
 
-    // ✨ 인벤토리 상태 변경과 UI 활성화/비활성화를 하나로 합칩니다.
     public void SetInventoryState(bool isOpen)
     {
         isInventoryOpen = isOpen;
@@ -271,44 +247,14 @@ public class InventoryManager : MonoBehaviour, IUIPanel
             inventoryUI.SetActive(isOpen);
         }
 
-        // ✨ [수정 2] 인벤토리를 닫을 때(!isOpen), 아이템을 들고 있다면(선택된 슬롯이 있다면)
         if (!isOpen && _selectedSlot != null)
         {
-            // 선택을 취소하고 아이템을 원래 자리에 돌려놓습니다. (마우스 아이콘도 꺼짐)
             ClearSelection();
         }
     }
 
-    // ✨ [조작 모드 전환]
-    public void UpdateInputState()
-    {
-        bool isStorageOpen = StorageUI.Instance != null && StorageUI.Instance.uiPanel.activeSelf;
-        bool isCraftingOpen = CraftingUI.Instance != null && CraftingUI.Instance.uiPanel.activeSelf;
+    // ✨ UpdateInputState(), SetCursorState(), SetPlayerControl() 함수 전부 삭제됨! (UIManager가 전담)
 
-        bool anyUIOpen = isInventoryOpen || isStorageOpen || isCraftingOpen;
-
-        if (anyUIOpen)
-        {
-            _playerInputComponent.SwitchCurrentActionMap("UI");
-            SetCursorState(true);
-            if (_cameraInputController != null) _cameraInputController.enabled = false;
-        }
-        else
-        {
-            _playerInputComponent.SwitchCurrentActionMap("Player");
-            SetCursorState(false);
-            if (_cameraInputController != null) _cameraInputController.enabled = true;
-        }
-    }
-
-    // ✨ [마우스 상태 제어]
-    private void SetCursorState(bool isOpen)
-    {
-        Cursor.lockState = isOpen ? CursorLockMode.None : CursorLockMode.Locked;
-        Cursor.visible = isOpen;
-    }
-
-    // ✨ [아이템 추가]
     public bool AddItem(ItemData data, int amount)
     {
         int remainingAmount = amount;
@@ -342,14 +288,6 @@ public class InventoryManager : MonoBehaviour, IUIPanel
         return remainingAmount <= 0;
     }
 
-    // ✨ StorageUI나 UIManager가 호출할 수 있도록 함수를 다시 만들어줍니다.
-    public void SetPlayerControl(bool isEnable)
-    {
-        // 이미 만들어둔 똑똑한 함수(UpdateInputState)를 대신 실행시킵니다.
-        UpdateInputState();
-    }
-
-    // ✨ [아이템 개수 확인] 제작용
     public int GetItemCount(ItemData data)
     {
         int total = 0;
@@ -360,7 +298,6 @@ public class InventoryManager : MonoBehaviour, IUIPanel
         return total;
     }
 
-    // ✨ [아이템 소모] 제작용
     public void RemoveItem(ItemData data, int amount)
     {
         int remainingToRemove = amount;
@@ -390,7 +327,7 @@ public class InventoryManager : MonoBehaviour, IUIPanel
     {
         isInventoryOpen = true;
         inventoryUI.SetActive(true);
-        UpdateInputState();
+        // ✨ UpdateInputState(); 삭제됨
     }
 
     public void CloseUI()

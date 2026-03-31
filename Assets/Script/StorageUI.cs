@@ -38,7 +38,6 @@ public class StorageUI : MonoBehaviour, IUIPanel
 
         // 인벤토리도 동시에 열기
         InventoryManager.Instance.OpenInventoryForce();
-        InventoryManager.Instance.SetPlayerControl(false); // 조작 차단
     }
 
     public void CloseStorage()
