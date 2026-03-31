@@ -1,16 +1,28 @@
+ï»¿using System.Collections.Generic;
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+
 public class PalBoxManager : MonoBehaviour
 {
     public static PalBoxManager Instance;
 
-    [Header("ÀúÀåµÈ ÆÓ ¸ñ·Ï")]
-    public List<PalData> storedPals = new List<PalData>();
-    public int maxCapacity = 40; // ½ºÅ©¸°¼¦À» º¸´Ï 8Ä­ x 5ÁÙ = 40Ä­ÀÌ³×¿ä!
+    [Header("ì €ì¥ëœ íŒ° ëª©ë¡ ")]
+    [HideInInspector]
+    public PalData[] storedPals = new PalData[50];
+    public int maxCapacity = 50;
 
-    [Header("UI ¿¬°á")]
+    [Header("UI ì—°ê²°")]
     public GameObject palBoxUI;
-    public PalSlot[] palSlots; // ½ºÅ©¸°¼¦¿¡ ÀÖ´Â 40°³ÀÇ ½½·ÔµéÀ» ¿©±â¿¡ ¿¬°áÇÕ´Ï´Ù.
+    public PalSlot[] palSlots;
+
+    [Header("ë“œë˜ê·¸ UI (ì•„ì´í…œê³¼ ê°™ì€ ë°©ì‹)")]
+    public GameObject dragObject;
+    public RawImage dragIcon;
+
+    // âœ¨ ìŠ¬ë¡¯ ì „ì²´ê°€ ì•„ë‹ˆë¼ í˜„ì¬ ë‚´ê°€ ë“¤ê³  ìˆëŠ” 'íŒ° ë°ì´í„°' ìì²´ë¥¼ ê¸°ì–µí•˜ê²Œ ë¶„ë¦¬í–ˆìŠµë‹ˆë‹¤.
+    private PalSlot _selectedPalSlot = null; // ìƒìì—ì„œ ë½‘ì•˜ì„ ë•Œ ì›ë˜ ìŠ¬ë¡¯ì„ ê¸°ì–µ
+    private PalData _draggingPalData = null; // í˜„ì¬ ë§ˆìš°ìŠ¤ì— ë“¤ê³  ìˆëŠ” íŒ°ì˜ ì‹¤ì²´
 
     private void Awake()
     {
@@ -20,69 +32,192 @@ public class PalBoxManager : MonoBehaviour
 
     private void Start()
     {
-        // ½ÃÀÛÇÒ ¶§ ºó ½½·ÔµéÀ» ÃÊ±âÈ­ÇØÁİ´Ï´Ù.
-        UpdateUI();
-    }
+        if (palBoxUI != null) palBoxUI.SetActive(false);
 
-    // [ÇÙ½É] ÇÊµå¿¡¼­ ¸ó½ºÅÍ¸¦ ½ºÇÇ¾î·Î Àâ¾ÒÀ» ¶§ ºÎ¸£´Â ÇÔ¼öÀÔ´Ï´Ù!
-    public bool CatchPal(PalData newPal)
-    {
-        if (storedPals.Count < maxCapacity)
-        {
-            storedPals.Add(newPal); // ¸®½ºÆ®¿¡ Ãß°¡
-            Debug.Log($"<color=cyan>[ÆÓ È¹µæ]</color> {newPal.palName}À»(¸¦) Pal Chest¿¡ Àü¼ÛÇß½À´Ï´Ù!");
-
-            UpdateUI(); // È­¸é °»½Å
-            return true;
-        }
-        else
-        {
-            Debug.LogWarning("Pal Chest°¡ °¡µæ Ã¡½À´Ï´Ù! ´õ ÀÌ»ó ÀâÀ» ¼ö ¾ø½À´Ï´Ù.");
-            return false;
-        }
-    }
-
-    // UI ½½·Ô¿¡ ÀúÀåµÈ ÆÓµéÀ» ¼ø¼­´ë·Î ±×·ÁÁÖ´Â ÇÔ¼ö
-    public void UpdateUI()
-    {
-        if (palSlots == null || palSlots.Length == 0) return;
+        if (storedPals == null || storedPals.Length != maxCapacity)
+            storedPals = new PalData[maxCapacity];
 
         for (int i = 0; i < palSlots.Length; i++)
         {
-            // ÀâÀº ÆÓÀÌ ÀÖ´Â Ä­Àº ÆÓ µ¥ÀÌÅÍ¸¦ ³Ö¾îÁÖ°í
-            if (i < storedPals.Count)
+            if (palSlots[i] != null)
             {
-                palSlots[i].Setup(storedPals[i]);
+                palSlots[i].slotIndex = i;
+                if (i < storedPals.Length && palSlots[i].storedPal != null)
+                {
+                    storedPals[i] = palSlots[i].storedPal;
+                }
             }
-            // ³²´Â ºóÄ­Àº ½Ï ºñ¿öÁİ´Ï´Ù.
+        }
+        UpdateUI();
+    }
+
+    void Update()
+    {
+        // _draggingPalDataê°€ ìˆì„ ë•Œ ë§ˆìš°ìŠ¤ë¥¼ ë”°ë¼ê°‘ë‹ˆë‹¤.
+        if (_draggingPalData != null && dragObject != null && dragObject.activeSelf)
+        {
+            dragObject.transform.position = Mouse.current.position.ReadValue();
+        }
+    }
+
+    public void OnPalSlotClicked(PalSlot clickedSlot)
+    {
+        // 1. ì•„ë¬´ê²ƒë„ ì•ˆ ë“¤ê³  ìˆì„ ë•Œ -> íŒ° ìƒìì—ì„œ ì§‘ì–´ë“¤ê¸°
+        if (_draggingPalData == null)
+        {
+            if (clickedSlot.storedPal == null) return;
+
+            _selectedPalSlot = clickedSlot;
+            _draggingPalData = clickedSlot.storedPal; // ë°ì´í„° ì¥ì „!
+            _selectedPalSlot.HighlightSlot(true);
+
+            if (dragObject != null)
+            {
+                dragObject.SetActive(true);
+                dragIcon.texture = _draggingPalData.palIcon;
+                _selectedPalSlot.iconRawImage.enabled = false;
+            }
+        }
+        // 2. ì´ë¯¸ ë­”ê°€ë¥¼ ë“¤ê³  ìˆì„ ë•Œ (ìƒì ì¶œì‹ ì´ë“  ìº í”„ ì¶œì‹ ì´ë“ )
+        else
+        {
+            // ìƒìì—ì„œ ë½‘ì•˜ë˜ ë†ˆì„ ê°™ì€ ìë¦¬ì— ë‹¤ì‹œ ë†“ì„ ë•Œ
+            if (_selectedPalSlot == clickedSlot)
+            {
+                ClearSelection();
+            }
             else
             {
-                palSlots[i].ClearSlot();
+                // í´ë¦­í•œ ì¹¸ì— ë¬´ì–¸ê°€ ìˆë‹¤ë©´ Swap, ì—†ë‹¤ë©´ ê·¸ëƒ¥ ë„£ê¸°
+                if (clickedSlot.storedPal != null)
+                {
+                    SwapPalDataWithDragging(clickedSlot);
+                }
+                else
+                {
+                    PlacePalInEmptySlot(clickedSlot);
+                }
             }
         }
     }
 
-    public void OnPalClicked(PalData clickedPal)
+    // ë§ˆìš°ìŠ¤ì— ë“¤ê³  ìˆëŠ” íŒ°ê³¼ ìŠ¬ë¡¯ì— ìˆëŠ” íŒ°ì„ êµí™˜
+    private void SwapPalDataWithDragging(PalSlot targetSlot)
     {
-        // ÀÏ´Ü Å¬¸¯ÀÌ Àß µÇ´ÂÁö ÄÜ¼ÖÃ¢¿¡ ¶ç¿öº¾´Ï´Ù!
-        Debug.Log($"<color=yellow>[ÆÓ ¼±ÅÃ]</color> {clickedPal.palName}À»(¸¦) Å¬¸¯Çß½À´Ï´Ù! (¿©±â¿¡ °ÅÁ¡ ¹èÄ¡ ·ÎÁ÷ Ãß°¡ ¿¹Á¤)");
+        PalData temp = targetSlot.storedPal;
 
-        // TODO: Å¬¸¯ÇÑ ÆÓÀ» °ÅÁ¡¿¡ ¼ÒÈ¯ÇÏ´Â ÄÚµå ÀÛ¼º
+        // íƒ€ê²Ÿ ìŠ¬ë¡¯ì— ë‚´ê°€ ë“¤ê³ ìˆë˜ ë†ˆ ê½‚ì•„ì¤Œ
+        storedPals[targetSlot.slotIndex] = _draggingPalData;
+        targetSlot.Setup(_draggingPalData);
+
+        // ë§Œì•½ ì›ë˜ ìƒìì—ì„œ ë½‘ì•˜ë˜ ë†ˆì´ë¼ë©´
+        if (_selectedPalSlot != null)
+        {
+            storedPals[_selectedPalSlot.slotIndex] = temp;
+            _selectedPalSlot.Setup(temp);
+            ClearSelection();
+        }
+        // ì›ë˜ ìº í”„ì—ì„œ ë½‘ì•„ì˜¨ ì™¸ë¶€ ì¸ë ¥ì´ì—ˆë‹¤ë©´
+        else
+        {
+            // ìƒìì— ìˆë˜ ë†ˆì„ ìƒˆë¡œ ë‚´ ì†ì— ì¥ì–´ì¤Œ (ìŠ¤ì™‘ ì™„ë£Œ)
+            ForceSelectPal(temp);
+        }
+    }
+
+    // ë¹ˆ ìŠ¬ë¡¯ì— íŒ°ì„ ë‚´ë ¤ë†“ìŒ
+    private void PlacePalInEmptySlot(PalSlot targetSlot)
+    {
+        // íƒ€ê²Ÿ ìŠ¬ë¡¯ì— ë°°ì¹˜
+        storedPals[targetSlot.slotIndex] = _draggingPalData;
+        targetSlot.Setup(_draggingPalData);
+
+        // ë§Œì•½ ìƒìì—ì„œ ë½‘ì•˜ë˜ ë†ˆì´ ì´ë™í•˜ëŠ” ê±°ë¼ë©´ ì›ë˜ ìë¦¬ ë¹„ì›€
+        if (_selectedPalSlot != null)
+        {
+            storedPals[_selectedPalSlot.slotIndex] = null;
+            _selectedPalSlot.ClearSlot();
+        }
+
+        ClearSelection();
+    }
+
+    // ìº í”„ì—ì„œ íŒ°ì„ êº¼ë‚´ ë°”ë¡œ ì†ì— ì¥ì–´ì£¼ëŠ” ê¸°ëŠ¥
+    public void ForceSelectPal(PalData palToSelect)
+    {
+        if (palToSelect == null) return;
+
+        _selectedPalSlot = null; // ìƒì ì¶œì‹ ì´ ì•„ë‹˜
+        _draggingPalData = palToSelect; // ë°ì´í„° ì¥ì „
+
+        if (dragObject != null)
+        {
+            dragObject.SetActive(true);
+            dragIcon.texture = _draggingPalData.palIcon;
+        }
+    }
+
+    public void ClearSelection()
+    {
+        if (_selectedPalSlot != null)
+        {
+            _selectedPalSlot.iconRawImage.enabled = true;
+            _selectedPalSlot.HighlightSlot(false);
+            _selectedPalSlot = null;
+        }
+        _draggingPalData = null; // ë“¤ê³  ìˆë˜ ë°ì´í„° ë‚ ë¦¼
+        if (dragObject != null) dragObject.SetActive(false);
+    }
+
+    // ì™¸ë¶€ì—ì„œ í˜„ì¬ ë“¤ê³  ìˆëŠ” íŒ°ì„ ë¬¼ì–´ë³¼ ë•Œ ë¦¬í„´
+    public PalData GetSelectedPal()
+    {
+        return _draggingPalData;
+    }
+
+    // ìº í”„ì— ë°°ì¹˜ì™„ë£Œ ë“± ì†ì—ì„œ íŒ°ì„ ì™„ì „íˆ ì—†ì•¨ ë•Œ
+    public void RemoveSelectedPal()
+    {
+        // ìƒìì—ì„œ ë½‘ì•˜ë˜ ë†ˆì´ë©´ ìƒì ë°ì´í„°ì—ì„œë„ ì‚­ì œ
+        if (_selectedPalSlot != null)
+        {
+            storedPals[_selectedPalSlot.slotIndex] = null;
+            _selectedPalSlot.ClearSlot();
+        }
+        ClearSelection();
+    }
+
+    public bool CatchPal(PalData newPal)
+    {
+        for (int i = 0; i < storedPals.Length; i++)
+        {
+            if (storedPals[i] == null)
+            {
+                storedPals[i] = newPal;
+                Debug.Log($"<color=cyan>[íŒ° íšë“]</color> {newPal.palName}ì„(ë¥¼) {i}ë²ˆ ì¹¸ì— ì €ì¥í–ˆìŠµë‹ˆë‹¤!");
+                UpdateUI();
+                return true;
+            }
+        }
+        Debug.LogWarning("Pal Chestê°€ ê°€ë“ ì°¼ìŠµë‹ˆë‹¤! ë” ì´ìƒ ì¡ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
+        return false;
+    }
+
+    public void UpdateUI()
+    {
+        if (palSlots == null || palSlots.Length == 0) return;
+        for (int i = 0; i < palSlots.Length; i++)
+        {
+            if (i < storedPals.Length) palSlots[i].Setup(storedPals[i]);
+        }
     }
 
     public void TogglePalBoxUI()
     {
-        if (palBoxUI == null)
-        {
-            Debug.LogError("UI ÆĞ³ÎÀÌ ¿¬°áµÇÁö ¾Ê¾Ò½À´Ï´Ù! ÀÎ½ºÆåÅÍ¸¦ È®ÀÎÇØÁÖ¼¼¿ä.");
-            return;
-        }
-
-        // ÇöÀç ÄÑÁ®ÀÖÀ¸¸é ²ô°í, ²¨Á®ÀÖÀ¸¸é ÄÕ´Ï´Ù.
+        if (palBoxUI == null) return;
         bool isCurrentlyActive = palBoxUI.activeSelf;
         palBoxUI.SetActive(!isCurrentlyActive);
 
-        // UI »óÅÂ¿¡ µû¶ó ¸¶¿ì½º Ä¿¼­ Á¶Àı ¹× µ¥ÀÌÅÍ °»½Å
         if (palBoxUI.activeSelf)
         {
             Cursor.lockState = CursorLockMode.None;
@@ -93,6 +228,20 @@ public class PalBoxManager : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+
+            // UI ëŒ ë•Œ ë“¤ê³  ìˆë˜ íŒ° ì²˜ë¦¬ (ì¦ë°œ ë°©ì§€)
+            if (_draggingPalData != null)
+            {
+                ReturnPalToBox(_draggingPalData);
+            }
+            ClearSelection();
         }
+    }
+
+    public void ReturnPalToBox(PalData pal)
+    {
+        if (pal == null) return;
+        CatchPal(pal);
+        Debug.Log($"<color=yellow>[íŒ° ìƒì ë³µê·€]</color> {pal.palName}ì´(ê°€) ë‹¤ì‹œ ìƒìë¡œ ëŒì•„ì™”ìŠµë‹ˆë‹¤.");
     }
 }
