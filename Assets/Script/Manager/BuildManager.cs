@@ -30,21 +30,44 @@ public class BuildManager : MonoBehaviour
     private Vector3 _lastGhostPosition;
     private bool _canBuild = false;      // 현재 설치 가능한 상태인가?
     private List<Renderer> _ghostRenderers = new List<Renderer>(); // 고스트의 색상을 바꿀 렌더러들
+    private PlayerInput _playerInput; // PlayerInput 컴포넌트 참조
+
 
     void Awake()
     {
         Instance = this;
         mainCamera = Camera.main;
         if (ghostRoot != null) ghostRoot.SetActive(false);
+
+        _playerInput = Object.FindAnyObjectByType<PlayerInput>();
     }
 
     void Update()
     {
+        if (isBuildingMode && _playerInput != null)
+        {
+            // 현재 유니티가 '실제로' 활성화해서 보고 있는 맵 이름이 뭔지 찍어줍니다.
+            Debug.Log($"[INPUT DEBUG] 현재 활성 맵: <color=cyan>{_playerInput.currentActionMap.name}</color>");
+        }
+
+        if (!isBuildingMode || currentBlueprintData == null || ghostRoot == null) return;
+
+        if (Keyboard.current.qKey.wasPressedThisFrame)
+        {
+            Debug.Log("<color=red>강제 Q 입력 감지!</color>");
+            ghostRoot.transform.Rotate(0f, -90f, 0f);
+        }
+        if (Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            Debug.Log("<color=red>강제 E 입력 감지!</color>");
+            ghostRoot.transform.Rotate(0f, 90f, 0f);
+        }
+
         if (EventSystem.current.IsPointerOverGameObject())
         {
             return; // 마우스가 UI 위에 있다면 아래 건축 로직을 실행하지 않고 즉시 취소!
         }
-        if (!isBuildingMode || currentBlueprintData == null || ghostRoot == null) return;
+
 
         var mouse = Mouse.current;
         var keyboard = Keyboard.current;
@@ -55,6 +78,7 @@ public class BuildManager : MonoBehaviour
             CancelBuilding();
             return;
         }
+
 
         Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
 
@@ -100,7 +124,7 @@ public class BuildManager : MonoBehaviour
                 // 머티리얼의 색상을 실시간으로 바꿉니다.
                 rend.material.color = targetColor;
             }
-
+            
             // ✨ 3. 클릭 시 설치 (설치 가능할 때만!)
             if (mouse.leftButton.wasPressedThisFrame)
             {
@@ -122,11 +146,20 @@ public class BuildManager : MonoBehaviour
 
     public void StartBuilding(ItemData blueprintItem)
     {
+        Debug.Log($"[BuildManager] 건축 모드 시작 시도: {blueprintItem.itemName}");
+
         if (!blueprintItem.isBuildable || string.IsNullOrEmpty(blueprintItem.ghostObjectName)) return;
         if (isBuildingMode && currentBlueprintData == blueprintItem) return;
 
         currentBlueprintData = blueprintItem;
         isBuildingMode = true;
+
+        // 건축 모드 시작 시 'Building' 액션 맵으로 전환
+        // 이렇게 하면 'Player' 맵에 있는 Interaction(E)은 자동으로 비활성화됩니다.
+        if (_playerInput != null)
+        {
+            _playerInput.SwitchCurrentActionMap("Building");
+        }
 
         bool foundGhost = false;
         foreach (Transform child in ghostRoot.transform)
@@ -173,6 +206,11 @@ public class BuildManager : MonoBehaviour
         isBuildingMode = false;
         currentBlueprintData = null;
         if (ghostRoot != null) ghostRoot.SetActive(false);
+
+        if (_playerInput != null)
+        {
+            _playerInput.SwitchCurrentActionMap("Player");
+        }
     }
 
     private bool IsInsideBaseCamp(Vector3 position)

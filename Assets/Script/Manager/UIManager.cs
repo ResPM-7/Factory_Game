@@ -41,6 +41,15 @@ public class UIManager : MonoBehaviour
             _wasAnyUIOpen = isCurrentlyOpen; // 상태 업데이트
             UpdateInputState();              // 즉시 플레이어 조작 상태 변경!
         }
+
+        if (isCurrentlyOpen && _playerInput != null)
+        {
+            // 우리가 에디터에서 만든 Action 이름이 "Cancel"일 경우
+            if (_playerInput.actions["Cancel"].triggered)
+            {
+                CloseAllMenus();
+            }
+        }
     }
 
     public bool IsAnyUIOpen()

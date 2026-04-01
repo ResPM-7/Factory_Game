@@ -141,8 +141,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 877da0d441b5a46419059f33eabd76b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BaseCamp
-  buildRadius: 5
-  segments: 5
+  buildRadius: 30
+  segments: 30
   lineWidth: 0.3
 --- !u!120 &8330855709190062584
 LineRenderer:
