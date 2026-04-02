@@ -25,7 +25,6 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        // 최신 유니티 6 방식의 컴포넌트 찾기
         _playerInput = Object.FindAnyObjectByType<PlayerInput>();
         _playerInputs = Object.FindAnyObjectByType<StarterAssetsInputs>();
         _cameraController = Object.FindAnyObjectByType<CinemachineInputAxisController>();
@@ -35,16 +34,14 @@ public class UIManager : MonoBehaviour
     {
         bool isCurrentlyOpen = IsAnyUIOpen();
 
-        // UI 상태가 '꺼짐 -> 켜짐' 또는 '켜짐 -> 꺼짐'으로 방금 변했다면?
         if (isCurrentlyOpen != _wasAnyUIOpen)
         {
-            _wasAnyUIOpen = isCurrentlyOpen; // 상태 업데이트
-            UpdateInputState();              // 즉시 플레이어 조작 상태 변경!
+            _wasAnyUIOpen = isCurrentlyOpen;
+            UpdateInputState();
         }
 
         if (isCurrentlyOpen && _playerInput != null)
         {
-            // 우리가 에디터에서 만든 Action 이름이 "Cancel"일 경우
             if (_playerInput.actions["Cancel"].triggered)
             {
                 CloseAllMenus();
@@ -56,12 +53,9 @@ public class UIManager : MonoBehaviour
     {
         foreach (GameObject panel in allUIPanels)
         {
-            if (panel != null && panel.activeSelf)
-            {
-                return true; // 하나라도 켜져 있으면 true 반환
-            }
+            if (panel != null && panel.activeSelf) return true;
         }
-        return false; // 모두 꺼져 있으면 false 반환
+        return false;
     }
 
     public void CloseAllMenus()
@@ -72,52 +66,54 @@ public class UIManager : MonoBehaviour
             {
                 IUIPanel uiManager = panel.GetComponentInParent<IUIPanel>();
 
-                if (uiManager != null)
-                {
-                    uiManager.CloseUI();
-                }
-                else
-                {
-                    panel.SetActive(false);
-                }
+                if (uiManager != null) uiManager.CloseUI();
+                else panel.SetActive(false);
             }
         }
-
-        // 조작 복구
         RestorePlayerControl();
     }
 
-    // 캐릭터 조작을 원래대로 돌리는 로직
+    // ✨ 캐릭터 조작을 원래대로 돌리는 로직 (수정됨)
     public void RestorePlayerControl()
     {
-        if (_playerInput == null) return;
+        // 1. 직접 바꾸지 않고 InputManager에게 부탁합니다!
+        if (InputManager.Instance != null)
+        {
+            // 🔥 [핵심] 만약 지금 건축 모드 중이었다면, Player가 아니라 Building 모드로 돌려놔야 합니다!
+            if (BuildManager.Instance != null && BuildManager.Instance.isBuildingMode)
+            {
+                InputManager.Instance.ChangeInputMode(InputMode.Building);
+            }
+            else
+            {
+                InputManager.Instance.ChangeInputMode(InputMode.Player);
+            }
+        }
 
-        // 조작 맵을 Player로 변경
-        _playerInput.SwitchCurrentActionMap("Player");
-
-        // 커서 상태 복구
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
-        // 카메라 및 이동 입력 초기화
+        // 2. 카메라 및 캐릭터 이동 초기화 (이건 UIManager가 해도 됨)
         if (_cameraController != null) _cameraController.enabled = true;
         if (_playerInputs != null)
         {
             _playerInputs.move = Vector2.zero;
             _playerInputs.look = Vector2.zero;
+            // InputManager에서 마우스를 가리지만, StarterAssets의 상태도 동기화해줍니다.
             _playerInputs.cursorLocked = true;
         }
     }
 
+    // ✨ UI가 켜지거나 꺼질 때 인풋 상태 변경 (수정됨)
     public void UpdateInputState()
     {
         if (IsAnyUIOpen())
         {
-            if (_playerInput != null) _playerInput.SwitchCurrentActionMap("UI");
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            if (_cameraController != null) _cameraController.enabled = false;
+            // 1. UI 모드로 변경해달라고 InputManager에게 요청!
+            if (InputManager.Instance != null)
+            {
+                InputManager.Instance.ChangeInputMode(InputMode.UI);
+            }
 
+            // 2. 카메라 움직임 및 이동 막기
+            if (_cameraController != null) _cameraController.enabled = false;
             if (_playerInputs != null)
             {
                 _playerInputs.move = Vector2.zero;
@@ -126,6 +122,7 @@ public class UIManager : MonoBehaviour
         }
         else
         {
+            // 창이 다 닫히면 똑똑하게 이전 상태(Player or Building)로 돌아감
             RestorePlayerControl();
         }
     }

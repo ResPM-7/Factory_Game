@@ -94,23 +94,31 @@ public class CraftingManager : MonoBehaviour
                 }
             }
 
-            // 2) 아직 모자라다면 50m 내 상자 털기
+            // ✨ 2) 아직 모자라다면 주변 상자 털기 (하드코딩 50f 삭제 -> 거점 반지름 적용)
             if (amountToTake > 0 && StorageChest.allChests != null)
             {
-                foreach (var chest in StorageChest.allChests)
+                BaseCamp currentCamp = GetBaseCampAt(craftingPosition);
+
+                // 제작대가 속한 거점이 있을 때만 상자 공유 기능 작동
+                if (currentCamp != null)
                 {
-                    if (Vector3.Distance(craftingPosition, chest.transform.position) <= 50f)
+                    foreach (var chest in StorageChest.allChests)
                     {
-                        int chestHas = chest.GetItemCount(ing.item);
-                        int takeFromChest = Mathf.Min(amountToTake, chestHas);
-
-                        if (takeFromChest > 0)
+                        // 상자가 거점 반지름(buildRadius) 안에 있는지 정확하게 검사
+                        if (Vector3.Distance(currentCamp.transform.position, chest.transform.position) <= currentCamp.buildRadius)
                         {
-                            chest.RemoveItem(ing.item, takeFromChest);
-                            amountToTake -= takeFromChest;
-                        }
+                            int chestHas = chest.GetItemCount(ing.item);
+                            int takeFromChest = Mathf.Min(amountToTake, chestHas);
 
-                        if (amountToTake <= 0) break;
+                            if (takeFromChest > 0)
+                            {
+                                chest.RemoveItem(ing.item, takeFromChest);
+                                amountToTake -= takeFromChest;
+                            }
+
+                            // 필요량을 다 채웠으면 더 이상 다른 상자를 뒤질 필요 없음
+                            if (amountToTake <= 0) break;
+                        }
                     }
                 }
             }

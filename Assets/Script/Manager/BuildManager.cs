@@ -44,25 +44,36 @@ public class BuildManager : MonoBehaviour
 
     void Update()
     {
-        if (isBuildingMode && _playerInput != null)
+        /*if (isBuildingMode && _playerInput != null)
         {
             // 현재 유니티가 '실제로' 활성화해서 보고 있는 맵 이름이 뭔지 찍어줍니다.
             Debug.Log($"[INPUT DEBUG] 현재 활성 맵: <color=cyan>{_playerInput.currentActionMap.name}</color>");
-        }
+        }*/
 
         if (!isBuildingMode || currentBlueprintData == null || ghostRoot == null) return;
 
-        if (Keyboard.current.qKey.wasPressedThisFrame)
+        if (InputManager.Instance != null && InputManager.Instance.currentMode != InputMode.Building)
         {
-            Debug.Log("<color=red>강제 Q 입력 감지!</color>");
-            ghostRoot.transform.Rotate(0f, -90f, 0f);
-        }
-        if (Keyboard.current.eKey.wasPressedThisFrame)
-        {
-            Debug.Log("<color=red>강제 E 입력 감지!</color>");
-            ghostRoot.transform.Rotate(0f, 90f, 0f);
+            // 고스트(파란색 미리보기)를 잠시 화면에서 숨기고
+            if (ghostRoot.activeSelf) ghostRoot.SetActive(false);
+
+            // 아래의 클릭/회전/설치 로직을 아예 실행하지 않고 차단합니다!
+            return;
         }
 
+        if (_playerInput != null)
+        {
+            if (_playerInput.actions["RotateLeft"].triggered)
+            {
+                Debug.Log("Q 입력(Action) 감지: 왼쪽 회전");
+                ghostRoot.transform.Rotate(0f, -90f, 0f);
+            }
+            if (_playerInput.actions["RotateRight"].triggered)
+            {
+                Debug.Log("E 입력(Action) 감지: 오른쪽 회전");
+                ghostRoot.transform.Rotate(0f, 90f, 0f);
+            }
+        }
         if (EventSystem.current.IsPointerOverGameObject())
         {
             return; // 마우스가 UI 위에 있다면 아래 건축 로직을 실행하지 않고 즉시 취소!
@@ -156,10 +167,7 @@ public class BuildManager : MonoBehaviour
 
         // 건축 모드 시작 시 'Building' 액션 맵으로 전환
         // 이렇게 하면 'Player' 맵에 있는 Interaction(E)은 자동으로 비활성화됩니다.
-        if (_playerInput != null)
-        {
-            _playerInput.SwitchCurrentActionMap("Building");
-        }
+        InputManager.Instance.ChangeInputMode(InputMode.Building);
 
         bool foundGhost = false;
         foreach (Transform child in ghostRoot.transform)
@@ -207,9 +215,9 @@ public class BuildManager : MonoBehaviour
         currentBlueprintData = null;
         if (ghostRoot != null) ghostRoot.SetActive(false);
 
-        if (_playerInput != null)
+        if (InputManager.Instance != null)
         {
-            _playerInput.SwitchCurrentActionMap("Player");
+            InputManager.Instance.ChangeInputMode(InputMode.Player);
         }
     }
 
