@@ -55,6 +55,6 @@ public class InputManager : MonoBehaviour
                 break;
         }
 
-        Debug.Log($"<color=green>[InputManager]</color> 조작 모드 변경됨: {newMode}");
+        //Debug.Log($"<color=green>[InputManager]</color> 조작 모드 변경됨: {newMode}");
     }
 }

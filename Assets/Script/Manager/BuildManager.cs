@@ -16,7 +16,7 @@ public class BuildManager : MonoBehaviour
 
     [Header("건축 설정")]
     public LayerMask groundLayer;
-    public float maxBuildDistance = 15f; 
+    public float maxBuildDistance = 15f;
     public bool useGridSnap = true;
     public float gridSize = 1f;
 
@@ -44,13 +44,21 @@ public class BuildManager : MonoBehaviour
 
     void Update()
     {
-        /*if (isBuildingMode && _playerInput != null)
+        if (InputManager.Instance != null && InputManager.Instance.currentMode == InputMode.UI)
         {
-            // 현재 유니티가 '실제로' 활성화해서 보고 있는 맵 이름이 뭔지 찍어줍니다.
-            Debug.Log($"[INPUT DEBUG] 현재 활성 맵: <color=cyan>{_playerInput.currentActionMap.name}</color>");
-        }*/
+            if (ghostRoot.activeSelf) ghostRoot.SetActive(false);
+            return;
+        }
 
-        if (!isBuildingMode || currentBlueprintData == null || ghostRoot == null) return;
+        // 2. [핵심] 철거 모드 중이면 고스트를 숨기고 건축 로직 정지
+        if (DemolitionManager.Instance != null && DemolitionManager.Instance.isDemolitionMode)
+        {
+            if (ghostRoot.activeSelf) ghostRoot.SetActive(false);
+            return; // 철거 중에는 아래의 건축 관련 입력을 아예 받지 않습니다.
+        }
+
+        // 3. 건축 모드가 아니면 리턴
+        if (!isBuildingMode || currentBlueprintData == null) return;
 
         if (InputManager.Instance != null && InputManager.Instance.currentMode != InputMode.Building)
         {
@@ -135,7 +143,7 @@ public class BuildManager : MonoBehaviour
                 // 머티리얼의 색상을 실시간으로 바꿉니다.
                 rend.material.color = targetColor;
             }
-            
+
             // ✨ 3. 클릭 시 설치 (설치 가능할 때만!)
             if (mouse.leftButton.wasPressedThisFrame)
             {

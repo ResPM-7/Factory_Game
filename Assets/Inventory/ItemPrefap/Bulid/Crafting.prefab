@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1417209743805799631}
+  - component: {fileID: 5451651559465587050}
   m_Layer: 10
   m_Name: Crafting
   m_TagString: Untagged
@@ -32,6 +33,21 @@ Transform:
   - {fileID: 5963060892090630394}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5451651559465587050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1715382860557690212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 435893d0da94d98479edb03e7c17f101, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlacedBuilding
+  originalBlueprint: {fileID: 11400000, guid: 46196ab06d01b23449a51ce2e7bb9e17, type: 2}
+  buildingRenderers:
+  - {fileID: 1057020601919441500}
 --- !u!1 &3671329880268198572
 GameObject:
   m_ObjectHideFlags: 0
@@ -174,6 +190,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CraftingStation
   currentRecipe: {fileID: 0}
+  targetCraftCount: 1
+  completedCount: 0
   elapsedTime: 0
   isCrafting: 0
   isFinished: 0

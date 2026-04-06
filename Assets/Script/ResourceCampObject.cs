@@ -8,6 +8,9 @@ public class ResourceCampObject : MonoBehaviour, IInteractable
     public WorkType campWorkType;
     public float baseProductionTime = 5f; // 기본 생산 시간
 
+    // 1. 여기에 최대 보관 개수 변수를 추가합니다! (유니티 인스펙터에서 수정 가능)
+    public int maxCapacity = 1000;
+
     [Header("현재 상태")]
     public int currentAmount = 0;
     public float currentProgress = 0f;
@@ -19,7 +22,7 @@ public class ResourceCampObject : MonoBehaviour, IInteractable
     {
         float totalWorkSpeed = GetTotalWorkSpeed();
 
-        // (팰이 없거나, 있어도 적성이 없으면 0이 되어 멈춥니다.)
+        // 팰이 있고 적성이 맞을 때만 작동
         if (totalWorkSpeed > 0)
         {
             ProduceResource(totalWorkSpeed);
@@ -28,14 +31,22 @@ public class ResourceCampObject : MonoBehaviour, IInteractable
 
     private void ProduceResource(float speed)
     {
-        // 슬라이더 진행 (적성 레벨의 총합에 따라 차오름)
+        // 2. 핵심 브레이크: 이미 꽉 찼다면 생산 로직을 여기서 바로 멈춥니다!
+        if (currentAmount >= maxCapacity)
+        {
+            currentProgress = 0f; // 진행도도 초기화해서 깔끔하게 대기 상태로 만듦
+            return;
+        }
+
+        // 슬라이더 진행
         currentProgress += (Time.deltaTime * speed) / baseProductionTime;
 
         if (currentProgress >= 1f)
         {
             currentProgress = 0f;
-            currentAmount++;
+            currentAmount++; // 자원 1개 추가
 
+            // 만약 UI가 켜져 있다면 화면 갱신
             if (ResourceCollectionUI.Instance != null && ResourceCollectionUI.Instance.TargetCamp == this)
             {
                 ResourceCollectionUI.Instance.RefreshDisplay();
@@ -43,7 +54,6 @@ public class ResourceCampObject : MonoBehaviour, IInteractable
         }
     }
 
-    // 핵심 수정: 팰의 적성 레벨에 따라 작업 속도를 계산합니다.
     private float GetTotalWorkSpeed()
     {
         float totalLevelSum = 0f;
@@ -51,11 +61,7 @@ public class ResourceCampObject : MonoBehaviour, IInteractable
         {
             if (pal != null)
             {
-                // 팰 데이터에서 이 건물의 작업 타입에 맞는 레벨을 가져옵니다.
-                // 벌목 레벨이 2라면 2를 반환, 없으면 0을 반환합니다.
                 int workLevel = pal.GetWorkLevel(campWorkType);
-
-                // 레벨이 0이면 더해도 0이므로 속도에 기여하지 않습니다.
                 totalLevelSum += workLevel;
             }
         }

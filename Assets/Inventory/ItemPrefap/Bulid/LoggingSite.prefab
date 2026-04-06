@@ -189,6 +189,7 @@ MonoBehaviour:
   resourceItem: {fileID: 11400000, guid: a985ce6ac5b30814590cd175866e3639, type: 2}
   campWorkType: 1
   baseProductionTime: 5
+  maxCapacity: 1000
   currentAmount: 0
   currentProgress: 0
   assignedPals:
@@ -877,6 +878,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3457184554965959590}
+  - component: {fileID: 1102040844881875534}
   m_Layer: 10
   m_Name: LoggingSite
   m_TagString: Untagged
@@ -900,6 +902,30 @@ Transform:
   - {fileID: 5398488002343029108}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1102040844881875534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5358918008800332879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 435893d0da94d98479edb03e7c17f101, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlacedBuilding
+  originalBlueprint: {fileID: 11400000, guid: 0f7fffbb002f94a43aa38f0c5e4b2831, type: 2}
+  buildingRenderers:
+  - {fileID: 17453249254441369}
+  - {fileID: 7703276848433529468}
+  - {fileID: 5936265226681595264}
+  - {fileID: 6589510809010068819}
+  - {fileID: 8690397887969090247}
+  - {fileID: 4583255910157003221}
+  - {fileID: 2955545469112569946}
+  - {fileID: 5223241573740047687}
+  - {fileID: 7572655488090094844}
+  - {fileID: 2180285031689813326}
 --- !u!1 &5679019313020091563
 GameObject:
   m_ObjectHideFlags: 0
