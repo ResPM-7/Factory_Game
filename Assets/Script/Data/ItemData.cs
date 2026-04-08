@@ -20,6 +20,8 @@ public class ItemData : ScriptableObject
     //새로 추가된 기능: 체크하면 무조건 거점 안에만 지을 수 있습니다!
     public bool requireBaseCamp = true;
 
+    [Header("볼설정")]
+    public bool isCaptureBall;
 
     [TextArea] public string description; // 아이템 설명
 

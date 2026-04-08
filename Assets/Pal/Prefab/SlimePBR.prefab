@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8976712708090542094}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: UpperEyeCover
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3175052459256029201}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: EyeBall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -71,7 +71,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9072938488171873201}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: EyeCTRL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -105,7 +105,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5594401561226457405}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Spine01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -139,7 +139,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4027171379054253362}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Side_L
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -170,7 +170,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9152435811054952469}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -202,7 +202,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5986038390159720373}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -235,7 +235,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 182899063856230857}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Crown
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -267,8 +267,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8524718144299580586}
   - component: {fileID: 7008894857818386736}
-  - component: {fileID: 1515728765060953504}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: SlimePBR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -314,19 +313,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &1515728765060953504
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6252902712489644026}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87eed30a09d0d6844b532845649f564d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PalWorker
-  myData: {fileID: 11400000, guid: f921d602ded79f840884be059b58048f, type: 2}
 --- !u!1 &7704528989203793326
 GameObject:
   m_ObjectHideFlags: 0
@@ -336,7 +322,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4028134394523013800}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Side_R
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -370,7 +356,8 @@ GameObject:
   - component: {fileID: 4250978592356592813}
   - component: {fileID: 4161202889623180985}
   - component: {fileID: 7274989019947510479}
-  m_Layer: 0
+  - component: {fileID: 3434762289774096784}
+  m_Layer: 12
   m_Name: Slime
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -507,10 +494,23 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &3434762289774096784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8696282541014908971}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87eed30a09d0d6844b532845649f564d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PalWorker
+  myData: {fileID: 11400000, guid: f921d602ded79f840884be059b58048f, type: 2}
 --- !u!1 &8729205498320640303
 GameObject:
   m_ObjectHideFlags: 0
@@ -520,7 +520,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8357043082100310626}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: BottomEyeCover
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5784dc3a77bf16d4ea9cb602e50d5bea, type: 3}
+  m_Name: Ball
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemID: Ball
+  itemName: "\uBCFC"
+  iconTexture: {fileID: 8400000, guid: cbbb2f0b533ed0e47b60f7634bcf82f4, type: 2}
+  maxStackSize: 64
+  prefab: {fileID: 858398746713199037, guid: 0e29ee083ec6cd44ca4a16d677518e2a, type: 3}
+  isBuildable: 0
+  placeablePrefab: {fileID: 858398746713199037, guid: 0e29ee083ec6cd44ca4a16d677518e2a, type: 3}
+  ghostObjectName: 
+  requireBaseCamp: 0
+  isCaptureBall: 1
+  description: "\uBAAC\uC2A4\uD130 \uD3EC\uD68D \uC544\uC774\uD15C"

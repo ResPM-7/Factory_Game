@@ -135,4 +135,48 @@ public class ItemPoolManager : MonoBehaviour
         obj.SetActive(false);
         poolDictionary[key].Enqueue(obj);
     }
+
+    public GameObject GetPrefab(GameObject prefab, Vector3 position, Quaternion rotation)
+    {
+        // 프리팹 이름을 키값으로 사용합니다 (예: CaptureBall_Pool)
+        string key = prefab.name + "_Pool";
+
+        if (!poolDictionary.ContainsKey(key))
+        {
+            SetupNewItemType(key);
+        }
+
+        if (poolDictionary[key].Count > 0)
+        {
+            GameObject reusedObj = poolDictionary[key].Dequeue();
+            reusedObj.transform.position = position;
+            reusedObj.transform.rotation = rotation;
+            reusedObj.SetActive(true);
+            return reusedObj;
+        }
+        else
+        {
+            GameObject newObj = Instantiate(prefab, position, rotation);
+            newObj.name = key;
+
+            if (folderDictionary.ContainsKey(key))
+                newObj.transform.SetParent(folderDictionary[key]);
+
+            return newObj;
+        }
+    }
+
+    // 일반 프리팹 되돌려놓기
+    public void ReturnPrefab(GameObject prefab, GameObject obj)
+    {
+        string key = prefab.name + "_Pool";
+
+        if (!poolDictionary.ContainsKey(key)) SetupNewItemType(key);
+
+        if (folderDictionary.ContainsKey(key))
+            obj.transform.SetParent(folderDictionary[key]);
+
+        obj.SetActive(false);
+        poolDictionary[key].Enqueue(obj);
+    }
 }

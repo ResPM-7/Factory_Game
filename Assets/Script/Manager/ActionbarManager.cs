@@ -5,12 +5,18 @@ using UnityEngine.InputSystem.Controls; // KeyControl 사용을 위해 추가
 
 public class ActionbarManager : MonoBehaviour
 {
+    public static ActionbarManager Instance;
+
     [Header("슬롯 설정")]
     public RectTransform[] slots;      // 액션바의 각 슬롯 10개
     public Image highlightImage;      // 선택된 칸을 보여줄 강조 이미지
 
     private KeyControl[] _hotbarKeys; // 숫자 키들을 담아둘 배열
     private int _currentSlotIndex = 0;
+
+    public ItemData SelectedItem { get; private set; }
+
+    void Awake() => Instance = this; // 🚀 싱글톤 초기화
 
     void Start()
     {
@@ -44,51 +50,45 @@ public class ActionbarManager : MonoBehaviour
         }
     }
 
+    public void UpdateUI()
+    {
+        foreach (RectTransform slot in slots)
+        {
+            InventorySlot slotScript = slot.GetComponent<InventorySlot>();
+            if (slotScript != null)
+            {
+                slotScript.UpdateSlotUI();
+            }
+        }
+
+        SelectSlot(_currentSlotIndex);
+    }
+
     void SelectSlot(int index)
     {
         if (slots == null || slots.Length <= index) return;
 
         _currentSlotIndex = index;
 
-        // 1. 하이라이트(노란 테두리) 이동
+        //하이라이트 이동
         if (highlightImage != null)
         {
             Transform outlineTransform = slots[index].Find("Outline");
-            if (outlineTransform != null)
-            {
-                highlightImage.transform.position = outlineTransform.position;
-            }
-            else
-            {
-                highlightImage.transform.position = slots[index].position;
-            }
+            highlightImage.transform.position = outlineTransform != null ? outlineTransform.position : slots[index].position;
         }
 
         // 2. ✨ 선택한 슬롯의 아이템 데이터를 가져옵니다.
         // (액션바의 UI 슬롯 오브젝트에 InventorySlot 스크립트가 붙어있다고 가정합니다)
-        InventorySlot selectedSlot = slots[index].GetComponent<InventorySlot>();
+        InventorySlot slotScript = slots[index].GetComponent<InventorySlot>();
+        SelectedItem = (slotScript != null) ? slotScript.item : null;
 
         // 아이템이 슬롯에 존재한다면?
-        if (selectedSlot != null && selectedSlot.item != null)
+        if (SelectedItem != null && SelectedItem.isBuildable)
         {
-            // 그 아이템이 건축 가능(Is Buildable 체크됨) 도면이라면?
-            if (selectedSlot.item.isBuildable)
-            {
-                if (BuildManager.Instance != null)
-                {
-                    // 건축 매니저에게 도면을 넘겨주고 건축 모드를 켭니다!
-                    BuildManager.Instance.StartBuilding(selectedSlot.item);
-                }
-            }
-            else
-            {
-                // 일반 아이템(나무, 돌 등)을 들었다면 건축 모드를 끕니다.
-                if (BuildManager.Instance != null) BuildManager.Instance.CancelBuilding();
-            }
+            if (BuildManager.Instance != null) BuildManager.Instance.StartBuilding(SelectedItem);
         }
         else
         {
-            // 빈 슬롯을 선택했다면 건축 모드를 끕니다.
             if (BuildManager.Instance != null) BuildManager.Instance.CancelBuilding();
         }
     }
