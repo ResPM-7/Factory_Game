@@ -253,14 +253,18 @@ namespace StarterAssets
 
             // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
             // if there is a move input rotate player when the player is moving
-            if (_input.move != Vector2.zero)
+            if (CameraManager.Instance != null && CameraManager.Instance.isAiming)
             {
-                _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
-                                  _mainCamera.transform.eulerAngles.y;
-                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
-                    RotationSmoothTime);
-
-                // rotate to face input direction relative to camera position
+                // ✨ 핵심: _mainCamera가 아니라 _cinemachineTargetYaw(마우스 목표치)를 직접 사용합니다!
+                // SmoothDamp(부드러운 회전)를 빼고 즉각적으로(단단하게) 고정시켜서 루프를 완전히 끊어냅니다.
+                transform.rotation = Quaternion.Euler(0.0f, _cinemachineTargetYaw, 0.0f);
+            }
+            // 평상시 달릴 때 (WASD 입력이 있을 때)
+            else if (_input.move != Vector2.zero)
+            {
+                // 기존 코드 그대로 유지
+                _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
+                float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, RotationSmoothTime);
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
 

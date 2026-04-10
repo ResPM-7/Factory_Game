@@ -48481,7 +48481,7 @@ Transform:
   m_GameObject: {fileID: 1712895708}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.279, z: 0.194}
+  m_LocalPosition: {x: 0, y: 0.279, z: 0.441}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -69768,7 +69768,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2977716161033508408}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.17054115, y: 0.022713222, z: -0.0039322046, w: 0.9850809}
+  m_LocalRotation: {x: 0.1705409, y: 0.022753177, z: -0.003939119, w: 0.98508}
   m_LocalPosition: {x: 2.28527, y: 3.5685291, z: -5.0627947}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -78530,7 +78530,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5318527312560504045}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.17054115, y: 0.022713222, z: -0.003932204, w: 0.9850809}
+  m_LocalRotation: {x: 0.17054091, y: 0.02275318, z: -0.0039391196, w: 0.98508}
   m_LocalPosition: {x: 2.28527, y: 3.5685291, z: -5.0627947}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -84928,6 +84928,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerThrow
   throwPoint: {fileID: 1712895709}
   throwForce: 15
+  aimCameraTransform: {fileID: 5318527312560504040}
 --- !u!224 &7245966054824867897
 RectTransform:
   m_ObjectHideFlags: 0

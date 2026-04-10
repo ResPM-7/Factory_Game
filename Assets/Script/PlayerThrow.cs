@@ -7,30 +7,59 @@ public class PlayerThrow : MonoBehaviour
     public Transform throwPoint;
     public float throwForce = 15f;
 
+    public Transform aimCameraTransform;
+
     private PlayerInput _playerInput;
 
     void Awake()
     {
-        // 동일 오브젝트 혹은 부모에게 있는 PlayerInput 컴포넌트를 가져옵니다.
         _playerInput = GetComponentInParent<PlayerInput>();
+
+        // 조준 카메라를 따로 지정 안 했다면 메인 카메라로 자동 설정
+        if (aimCameraTransform == null && Camera.main != null)
+        {
+            aimCameraTransform = Camera.main.transform;
+        }
     }
 
     void Update()
     {
         if (ActionbarManager.Instance == null || InventoryManager.Instance == null) return;
+        if (CameraManager.Instance == null) return;
 
-        // 1. 현재 액션바에서 선택된 아이템 확인
         ItemData heldItem = ActionbarManager.Instance.SelectedItem;
 
-        // 2. 포획 공이고, 인벤토리에 개수가 남아있는지 확인
-        if (heldItem != null && heldItem.isCaptureBall)
+        // 조준 중일 때만 작동!
+        if (heldItem != null && heldItem.isCaptureBall && CameraManager.Instance.isAiming)
         {
-            if (_playerInput.actions["Throw"].triggered)
+            // 수정됨: "Throw" 대신 "Attack"(좌클릭) 신호를 받아옵니다!
+            if (_playerInput.actions["Attack"].triggered)
             {
-                // 인벤토리에 실제 개수가 있는지 한 번 더 체크 (방어 코드)
                 if (InventoryManager.Instance.GetItemCount(heldItem) > 0)
                 {
                     ThrowBall(heldItem);
+                }
+            }
+        }
+    }
+
+    private void LateUpdate()
+    {
+        // 1. 조준 중(우클릭 유지)인지 확인
+        if (CameraManager.Instance != null && CameraManager.Instance.isAiming)
+        {
+            if (Camera.main != null)
+            {
+                // 2. 메인 카메라가 바라보는 방향을 가져옵니다.
+                Vector3 cameraForward = Camera.main.transform.forward;
+
+                // 3. 캐릭터가 땅바닥을 보거나 하늘을 보며 기울어지지 않도록 Y축(높낮이)은 0으로 평평하게 깎아줍니다.
+                cameraForward.y = 0f;
+
+                // 4. 캐릭터의 회전(Rotation)을 카메라가 보는 방향으로 강제로 고정!
+                if (cameraForward.sqrMagnitude > 0.01f)
+                {
+                    transform.rotation = Quaternion.LookRotation(cameraForward.normalized);
                 }
             }
         }
@@ -40,23 +69,20 @@ public class PlayerThrow : MonoBehaviour
     {
         if (ballData.placeablePrefab == null || throwPoint == null) return;
 
-        // [핵심] 인벤토리 매니저의 기존 로직을 재사용하여 아이템 1개 차감!
-        // 이 함수 내부에서 아이템 개수가 0이 되면 자동으로 ClearSlot()을 호출합니다.
         InventoryManager.Instance.RemoveItem(ballData, 1);
-
-        // 액션바 UI도 즉시 갱신 (개수 텍스트 업데이트 및 0개 시 아이콘 제거)
         ActionbarManager.Instance.UpdateUI();
 
-        // 오브젝트 풀링을 이용해 공 생성 및 발사
         GameObject ballObj = ItemPoolManager.Instance.GetPrefab(ballData.placeablePrefab, throwPoint.position, throwPoint.rotation);
 
         if (ballObj.TryGetComponent(out CaptureBall ball))
         {
             ball.originalPrefab = ballData.placeablePrefab;
-            Vector3 throwDirection = throwPoint.forward + (Vector3.up * 0.15f);
+
+            // [핵심] 조준한 곳으로 던지기
+            // throwPoint.forward 대신 '카메라가 바라보는 방향(forward)'을 기준으로 쏩니다.
+            Vector3 throwDirection = aimCameraTransform.forward + (Vector3.up * 0.1f);
             ball.Throw(throwDirection.normalized * throwForce);
 
-            Debug.Log($"<color=yellow>{ballData.itemName}</color> 투척! (인벤토리에서 1개 소모)");
         }
     }
 }

@@ -9,7 +9,6 @@ public class PlayerAttack : MonoBehaviour
     public float attackDuration = 0.2f;
     public float attackCooldown = 0.5f;
 
-    // ✨ Input System의 액션을 인스펙터에서 직접 넣을 수 있게 해주는 마법의 변수입니다!
     [Header("입력 설정")]
     public InputActionReference attackAction;
 
@@ -22,13 +21,23 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
-        // ✨ 매번 찾아올 필요 없이, 인스펙터에 넣은 액션이 눌렸는지만 바로 검사합니다.
-        // (.action을 붙여서 실제 액션 데이터에 접근합니다)
+        // 1. 교통정리 (이 조건들 중 하나라도 해당되면 공격 로직을 막습니다)
+
+        // UI가 열려있으면 막음
+        bool isUIOpen = UIManager.Instance != null && UIManager.Instance.IsAnyUIOpen();
+        if (isUIOpen) return;
+
+        // 건축 모드 중이면 막음
+        if (BuildManager.Instance != null && BuildManager.Instance.isBuildingMode) return;
+
+        // ✨ [핵심] 우클릭으로 조준(Aiming) 중일 때는 '공 던지기'에 좌클릭을 양보합니다!
+        if (CameraManager.Instance != null && CameraManager.Instance.isAiming) return;
+
+
+        // 2. 공격 실행
         if (attackAction != null && attackAction.action.WasPressedThisFrame())
         {
-            bool isUIOpen = UIManager.Instance != null && UIManager.Instance.IsAnyUIOpen();
-
-            if (!isAttacking && !isUIOpen)
+            if (!isAttacking)
             {
                 StartCoroutine(AttackRoutine());
             }
